@@ -140,6 +140,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "702",
       },
       {
         id: "geometria-desc",
@@ -147,6 +148,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "708",
       },
     ],
   },
@@ -202,6 +204,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "723",
       },
       {
         id: "geografia-a",
@@ -209,6 +212,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "719",
       },
     ],
   },
@@ -257,6 +261,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "719",
       },
       {
         id: "latim-a",
@@ -264,6 +269,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "732",
       },
       {
         id: "lingua-estrangeira",
@@ -271,6 +277,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "550",
       },
       {
         id: "literatura-pt",
@@ -278,6 +285,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "734",
       },
       {
         id: "macs",
@@ -285,6 +293,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "835",
       },
     ],
   },
@@ -333,6 +342,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "708",
       },
       {
         id: "hca",
@@ -340,13 +350,15 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "724",
       },
       {
-        id: "matematica",
-        nome: "Matemática",
+        id: "filosofia",
+        nome: "Filosofia",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "714",
       },
     ],
   },

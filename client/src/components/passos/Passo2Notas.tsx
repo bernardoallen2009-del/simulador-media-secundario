@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { motion } from "framer-motion";
-import { CURSOS, calcularCIF, normalizarNota } from "@/lib/cursos";
+import { CURSOS, calcularCIFComTipo, normalizarNota } from "@/lib/cursos";
 import { useSimulador } from "@/contexts/SimuladorContext";
 
 function NotaInput({
@@ -61,12 +61,8 @@ export default function Passo2Notas() {
     const dados = state.dadosDisciplinas[discId];
     const disc = curso.disciplinas.find((d) => d.id === discId);
     if (!disc || !dados) return null;
-    const periodos: (number | null)[] = [];
-    for (const ano of disc.anos) {
-      const n = dados.notas[ano];
-      periodos.push(normalizarNota(n.p1), normalizarNota(n.p2), normalizarNota(n.p3));
-    }
-    return calcularCIF(periodos);
+    const notasPorAno = disc.anos.map((ano) => dados.notas[ano]);
+    return calcularCIFComTipo(notasPorAno, disc.tipo);
   };
 
   const getNotas = (discId: string, ano: "10" | "11" | "12") => {

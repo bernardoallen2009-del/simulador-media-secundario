@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { motion } from "framer-motion";
-import { DISCIPLINAS_12_OPCOES, DisciplinaOpcional12, calcularCIF, normalizarNota } from "@/lib/cursos";
+import { DISCIPLINAS_12_OPCOES, DisciplinaOpcional12, calcularCIFComTipo, normalizarNota } from "@/lib/cursos";
 import { useSimulador, DadosOpcional12 } from "@/contexts/SimuladorContext";
 
 function NotaInput({
@@ -47,11 +47,7 @@ function OpcaoCard({
 
   const disponiveis = DISCIPLINAS_12_OPCOES.filter((d) => d !== outroNome);
 
-  const cif = calcularCIF([
-    normalizarNota(opcao.notas.p1),
-    normalizarNota(opcao.notas.p2),
-    normalizarNota(opcao.notas.p3),
-  ]);
+  const cif = calcularCIFComTipo([opcao.notas], "anual");
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E5EA] shadow-sm overflow-hidden">

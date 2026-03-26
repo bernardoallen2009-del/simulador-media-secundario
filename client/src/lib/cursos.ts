@@ -353,6 +353,28 @@ export function normalizarNota(nota: number | string): number | null {
   return Math.min(20, Math.max(0, n));
 }
 
+export function calcularCIFComTipo(
+  notasPorAno: Array<{ p1: string; p2: string; p3: string }>,
+  tipo: "trienal" | "bienal" | "anual"
+): number | null {
+  if (tipo === "anual") {
+    if (notasPorAno.length === 0) return null;
+    const periodos = [
+      normalizarNota(notasPorAno[0].p1),
+      normalizarNota(notasPorAno[0].p2),
+      normalizarNota(notasPorAno[0].p3),
+    ];
+    const validos = periodos.filter((p): p is number => p !== null && !isNaN(p));
+    if (validos.length === 0) return null;
+    return validos.reduce((a, b) => a + b, 0) / validos.length;
+  } else {
+    const terceirosPeríodos = notasPorAno.map((n) => normalizarNota(n.p3));
+    const validos = terceirosPeríodos.filter((p): p is number => p !== null && !isNaN(p));
+    if (validos.length === 0) return null;
+    return validos.reduce((a, b) => a + b, 0) / validos.length;
+  }
+}
+
 export function getNomeExame(codigo: string): string {
   const exame = EXAMES_DISPONIVEIS.find((e) => e.codigo === codigo);
   return exame?.nome ?? codigo;

@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { motion } from "framer-motion";
-import { CURSOS, EXAMES_DISPONIVEIS, calcularCIF, calcularCFD, normalizarNota, getNomeExame } from "@/lib/cursos";
+import { CURSOS, EXAMES_DISPONIVEIS, calcularCIFComTipo, calcularCFD, normalizarNota, getNomeExame } from "@/lib/cursos";
 import { useSimulador } from "@/contexts/SimuladorContext";
 import { Plus, X } from "lucide-react";
 
@@ -74,21 +74,13 @@ export default function Passo4Exames() {
     const dados = state.dadosDisciplinas[discId];
     const disc = curso.disciplinas.find((d) => d.id === discId);
     if (!disc || !dados) return null;
-    const periodos: (number | null)[] = [];
-    for (const ano of disc.anos) {
-      const n = dados.notas[ano];
-      periodos.push(normalizarNota(n.p1), normalizarNota(n.p2), normalizarNota(n.p3));
-    }
-    return calcularCIF(periodos);
+    const notasPorAno = disc.anos.map((ano) => dados.notas[ano]);
+    return calcularCIFComTipo(notasPorAno, disc.tipo);
   };
 
   const getCIFOpcao = (slot: 1 | 2) => {
     const opcao = slot === 1 ? state.opcional1 : state.opcional2;
-    return calcularCIF([
-      normalizarNota(opcao.notas.p1),
-      normalizarNota(opcao.notas.p2),
-      normalizarNota(opcao.notas.p3),
-    ]);
+    return calcularCIFComTipo([opcao.notas], "anual");
   };
 
   // Exames já adicionados (para não permitir duplicatas)

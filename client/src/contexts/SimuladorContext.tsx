@@ -11,6 +11,7 @@ import {
   DisciplinaOpcional12,
   calcularCFD,
   calcularCIF,
+  calcularCIFComTipo,
   calcularMediaFinal,
   getPesoDisciplina,
   normalizarNota,
@@ -295,16 +296,14 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
       // Disciplinas do curso
       for (const disc of curso.disciplinas) {
         const dados = state.dadosDisciplinas[disc.id];
-        const todosOsPeriodos: (number | null)[] = [];
+        const notasPorAno: Array<{ p1: string; p2: string; p3: string }> = [];
 
         for (const ano of disc.anos) {
           const notas = dados?.notas[ano] ?? notasVazias();
-          todosOsPeriodos.push(normalizarNota(notas.p1));
-          todosOsPeriodos.push(normalizarNota(notas.p2));
-          todosOsPeriodos.push(normalizarNota(notas.p3));
+          notasPorAno.push(notas);
         }
 
-        const cif = calcularCIF(todosOsPeriodos);
+        const cif = calcularCIFComTipo(notasPorAno, disc.tipo);
 
         // Processar exames adicionados
         const examesAplicados = (dados?.exames ?? []).map((exame) => {
@@ -347,12 +346,7 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
         [2, state.opcional2],
       ] as const) {
         if (!opcao.nome) continue;
-        const periodos = [
-          normalizarNota(opcao.notas.p1),
-          normalizarNota(opcao.notas.p2),
-          normalizarNota(opcao.notas.p3),
-        ];
-        const cif = calcularCIF(periodos);
+        const cif = calcularCIFComTipo([opcao.notas], "anual");
 
         const examesAplicados = (opcao.exames ?? []).map((exame) => {
           const notaExameNum = normalizarNota(exame.notaExame);

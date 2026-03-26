@@ -69,6 +69,7 @@ export interface SimuladorState {
   opcional2: DadosOpcional12;
   exames: ExameSelecionado[]; // Exames globais
   resultado: ResultadoFinal | null;
+  opcaoBioGeomDesc: "bio-geo" | "geometria-desc" | null;
 }
 
 type Action =
@@ -81,6 +82,7 @@ type Action =
   | { type: "REMOVE_EXAME"; exameId: string }
   | { type: "SET_TIPO_EXAME"; exameId: string; tipoExame: "interno" | "ingresso" | null }
   | { type: "SET_NOTA_EXAME"; exameId: string; notaExame: string }
+  | { type: "SET_OPCAO_BIO_GEOM"; opcao: "bio-geo" | "geometria-desc" }
   | { type: "CALCULAR_RESULTADO"; curso: Curso }
   | { type: "RESET" };
 
@@ -101,6 +103,7 @@ const initialState: SimuladorState = {
   opcional2: opcionalVazio(),
   exames: [],
   resultado: null,
+  opcaoBioGeomDesc: null,
 };
 
 // ─── REDUCER ─────────────────────────────────────────────────────────────────
@@ -197,12 +200,24 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
       };
     }
 
+    case "SET_OPCAO_BIO_GEOM": {
+      return {
+        ...state,
+        opcaoBioGeomDesc: action.opcao,
+      };
+    }
+
     case "CALCULAR_RESULTADO": {
       const curso = action.curso;
       const resultados: ResultadoDisciplina[] = [];
 
       // Disciplinas do curso
       for (const disc of curso.disciplinas) {
+        // Filtrar Bio/GeomDesc para CT
+        if (curso.id === "ct" && (disc.id === "bio-geo" || disc.id === "geometria-desc")) {
+          if (disc.id !== state.opcaoBioGeomDesc) continue;
+        }
+
         const dados = state.dadosDisciplinas[disc.id];
         const notasPorAno: Array<{ p1: string; p2: string; p3: string }> = [];
 

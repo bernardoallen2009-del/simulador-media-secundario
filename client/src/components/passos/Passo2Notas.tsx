@@ -69,7 +69,17 @@ export default function Passo2Notas() {
     return state.dadosDisciplinas[discId]?.notas[ano] ?? { p1: "", p2: "", p3: "" };
   };
 
-  const podeProsseguir = curso.disciplinas.some((d) => getCIF(d.id) !== null);
+  // Filtrar disciplinas: se CT, mostrar apenas a selecionada (Bio ou GeomDesc)
+  const disciplinasExibir = curso.disciplinas.filter((disc) => {
+    if (state.cursoPorId === "ct") {
+      if (disc.id === "bio-geo" || disc.id === "geometria-desc") {
+        return disc.id === state.opcaoBioGeomDesc;
+      }
+    }
+    return true;
+  });
+
+  const podeProsseguir = disciplinasExibir.some((d) => getCIF(d.id) !== null);
 
   return (
     <motion.div
@@ -87,8 +97,51 @@ export default function Passo2Notas() {
         </p>
       </div>
 
+      {/* Toggle Bio/GeomDesc para CT */}
+      {state.cursoPorId === "ct" && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6 bg-white rounded-2xl border border-[#E5E5EA] shadow-sm p-4"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-[15px] font-semibold text-[#1D1D1F] mb-1">
+                Opção de Ciência (10º-11º)
+              </h3>
+              <p className="text-[13px] text-[#6E6E73]">
+                Escolhe qual disciplina vais fazer
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => dispatch({ type: "SET_OPCAO_BIO_GEOM", opcao: "bio-geo" })}
+                className={`px-4 py-2 text-[13px] font-medium rounded-lg border transition-all duration-150 whitespace-nowrap ${
+                  state.opcaoBioGeomDesc === "bio-geo"
+                    ? "bg-[#0071E3] text-white border-[#0071E3] shadow-sm"
+                    : "bg-white text-[#1D1D1F] border-[#D2D2D7] hover:border-[#0071E3]/40 hover:bg-[#0071E3]/5"
+                }`}
+              >
+                Biologia e Geologia
+              </button>
+              <button
+                onClick={() => dispatch({ type: "SET_OPCAO_BIO_GEOM", opcao: "geometria-desc" })}
+                className={`px-4 py-2 text-[13px] font-medium rounded-lg border transition-all duration-150 whitespace-nowrap ${
+                  state.opcaoBioGeomDesc === "geometria-desc"
+                    ? "bg-[#0071E3] text-white border-[#0071E3] shadow-sm"
+                    : "bg-white text-[#1D1D1F] border-[#D2D2D7] hover:border-[#0071E3]/40 hover:bg-[#0071E3]/5"
+                }`}
+              >
+                Geometria Descritiva A
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <div className="space-y-4">
-        {curso.disciplinas.map((disc, idx) => {
+        {disciplinasExibir.map((disc, idx) => {
           const cif = getCIF(disc.id);
           const tipoBadge =
             disc.tipo === "trienal" ? { label: "Trienal", cls: "bg-blue-50 text-blue-600" } :

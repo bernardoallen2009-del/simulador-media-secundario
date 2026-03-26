@@ -143,13 +143,9 @@ export default function Passo5Resultado() {
                   >
                     <td className="px-5 py-3">
                       <div className="font-medium text-[#1D1D1F]">{disc.nome}</div>
-                      {disc.examesAplicados.length > 0 && (
+                      {disc.exameAplicado && (
                         <div className="text-[11px] text-[#AEAEB2] mt-1">
-                          {disc.examesAplicados.map((e) => (
-                            <div key={e.codigo}>
-                              {getNomeExame(e.codigo)} ({e.tipoExame ?? "—"}) = {e.nota !== null ? e.nota.toFixed(1) : "—"}
-                            </div>
-                          ))}
+                          {getNomeExame(disc.exameAplicado.codigoExame)} (Aluno Inscrito) = {disc.exameAplicado.notaExame}
                         </div>
                       )}
                     </td>
@@ -182,9 +178,9 @@ export default function Passo5Resultado() {
       >
         <strong className="text-[#1D1D1F]">Fórmula da Média:</strong>{" "}
         Σ(CFD × Peso) ÷ Σ(Pesos) — Trienal=3, Bienal=2, Anual=1.
-        {resultado.disciplinas.filter((d) => d.examesAplicados.length > 0).length > 0 && (
+        {resultado.disciplinas.filter((d) => d.exameAplicado !== null).length > 0 && (
           <span className="ml-1">
-            · <strong className="text-[#1D1D1F]">Com exames:</strong> melhor resultado entre CIF e CFD = CIF × 75% + Exame × 25%.
+            · <strong className="text-[#1D1D1F]">Com exames:</strong> CFD = CIF (arredondada) × 75% + Nota Exame × 25%.
           </span>
         )}
       </motion.div>

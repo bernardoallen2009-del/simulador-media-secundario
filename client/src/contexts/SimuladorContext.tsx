@@ -1,7 +1,7 @@
 // =============================================================================
 // CONTEXTO GLOBAL DO SIMULADOR — Estado completo da aplicação
 // Design: Apple Education White
-// Atualizado: Sistema de exames flexível (qualquer exame para qualquer aluno)
+// Atualizado: Sistema de exames global (seleção centralizada no Passo 4)
 // =============================================================================
 
 import React, { createContext, useContext, useReducer } from "react";
@@ -10,11 +10,11 @@ import {
   Disciplina,
   DisciplinaOpcional12,
   calcularCFD,
-  calcularCIF,
   calcularCIFComTipo,
   calcularMediaFinal,
   getPesoDisciplina,
   normalizarNota,
+  getDisciplinaParaExame,
 } from "@/lib/cursos";
 
 // ─── TIPOS ───────────────────────────────────────────────────────────────────
@@ -32,21 +32,18 @@ export interface DadosDisciplina {
     "11": NotasPeriodo;
     "12": NotasPeriodo;
   };
-  exames: Array<{
-    id: string; // código do exame (ex: "639")
-    tipoExame: "interno" | "ingresso" | null;
-    notaExame: string;
-  }>;
 }
 
 export interface DadosOpcional12 {
   nome: DisciplinaOpcional12 | null;
   notas: NotasPeriodo;
-  exames: Array<{
-    id: string;
-    tipoExame: "interno" | "ingresso" | null;
-    notaExame: string;
-  }>;
+}
+
+export interface ExameSelecionado {
+  id: string; // ID único (timestamp)
+  codigoExame: string; // código do exame (ex: "639")
+  tipoExame: "interno" | "ingresso" | null;
+  notaExame: string;
 }
 
 export interface ResultadoDisciplina {
@@ -56,13 +53,7 @@ export interface ResultadoDisciplina {
   peso: number;
   cif: number | null;
   cfd: number | null;
-  examesAplicados: Array<{
-    codigo: string;
-    nome: string;
-    nota: number | null;
-    tipoExame: "interno" | "ingresso" | null;
-    cfdResultante: number | null;
-  }>;
+  exameAplicado: ExameSelecionado | null;
 }
 
 export interface ResultadoFinal {
@@ -76,6 +67,7 @@ export interface SimuladorState {
   dadosDisciplinas: Record<string, DadosDisciplina>;
   opcional1: DadosOpcional12;
   opcional2: DadosOpcional12;
+  exames: ExameSelecionado[]; // Exames globais
   resultado: ResultadoFinal | null;
 }
 
@@ -83,16 +75,12 @@ type Action =
   | { type: "SET_CURSO"; cursoId: string }
   | { type: "SET_PASSO"; passo: number }
   | { type: "SET_NOTA_PERIODO"; disciplinaId: string; ano: "10" | "11" | "12"; periodo: "p1" | "p2" | "p3"; valor: string }
-  | { type: "ADD_EXAME_DISCIPLINA"; disciplinaId: string; codigoExame: string }
-  | { type: "REMOVE_EXAME_DISCIPLINA"; disciplinaId: string; exameId: string }
-  | { type: "SET_TIPO_EXAME_DISCIPLINA"; disciplinaId: string; exameId: string; tipoExame: "interno" | "ingresso" | null }
-  | { type: "SET_NOTA_EXAME_DISCIPLINA"; disciplinaId: string; exameId: string; notaExame: string }
   | { type: "SET_OPCAO_12"; slot: 1 | 2; campo: keyof DadosOpcional12; valor: string | null }
   | { type: "SET_NOTA_OPCAO_PERIODO"; slot: 1 | 2; periodo: "p1" | "p2" | "p3"; valor: string }
-  | { type: "ADD_EXAME_OPCAO"; slot: 1 | 2; codigoExame: string }
-  | { type: "REMOVE_EXAME_OPCAO"; slot: 1 | 2; exameId: string }
-  | { type: "SET_TIPO_EXAME_OPCAO"; slot: 1 | 2; exameId: string; tipoExame: "interno" | "ingresso" | null }
-  | { type: "SET_NOTA_EXAME_OPCAO"; slot: 1 | 2; exameId: string; notaExame: string }
+  | { type: "ADD_EXAME"; codigoExame: string }
+  | { type: "REMOVE_EXAME"; exameId: string }
+  | { type: "SET_TIPO_EXAME"; exameId: string; tipoExame: "interno" | "ingresso" | null }
+  | { type: "SET_NOTA_EXAME"; exameId: string; notaExame: string }
   | { type: "CALCULAR_RESULTADO"; curso: Curso }
   | { type: "RESET" };
 
@@ -103,7 +91,6 @@ const notasVazias = (): NotasPeriodo => ({ p1: "", p2: "", p3: "" });
 const opcionalVazio = (): DadosOpcional12 => ({
   nome: null,
   notas: notasVazias(),
-  exames: [],
 });
 
 const initialState: SimuladorState = {
@@ -112,6 +99,7 @@ const initialState: SimuladorState = {
   dadosDisciplinas: {},
   opcional1: opcionalVazio(),
   opcional2: opcionalVazio(),
+  exames: [],
   resultado: null,
 };
 
@@ -129,7 +117,6 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
       const prev = state.dadosDisciplinas[action.disciplinaId] ?? {
         disciplinaId: action.disciplinaId,
         notas: { "10": notasVazias(), "11": notasVazias(), "12": notasVazias() },
-        exames: [],
       };
       return {
         ...state,
@@ -149,74 +136,6 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
       };
     }
 
-    case "ADD_EXAME_DISCIPLINA": {
-      const prev = state.dadosDisciplinas[action.disciplinaId] ?? {
-        disciplinaId: action.disciplinaId,
-        notas: { "10": notasVazias(), "11": notasVazias(), "12": notasVazias() },
-        exames: [],
-      };
-      const novoExame = { id: action.codigoExame, tipoExame: null as "interno" | "ingresso" | null, notaExame: "" };
-      return {
-        ...state,
-        dadosDisciplinas: {
-          ...state.dadosDisciplinas,
-          [action.disciplinaId]: {
-            ...prev,
-            exames: [...prev.exames, { ...novoExame, id: action.codigoExame }],
-          },
-        },
-      };
-    }
-
-    case "REMOVE_EXAME_DISCIPLINA": {
-      const prev = state.dadosDisciplinas[action.disciplinaId];
-      if (!prev) return state;
-      return {
-        ...state,
-        dadosDisciplinas: {
-          ...state.dadosDisciplinas,
-          [action.disciplinaId]: {
-            ...prev,
-            exames: prev.exames.filter((e) => e.id !== action.exameId),
-          },
-        },
-      };
-    }
-
-    case "SET_TIPO_EXAME_DISCIPLINA": {
-      const prev = state.dadosDisciplinas[action.disciplinaId];
-      if (!prev) return state;
-      return {
-        ...state,
-        dadosDisciplinas: {
-          ...state.dadosDisciplinas,
-          [action.disciplinaId]: {
-            ...prev,
-            exames: prev.exames.map((e) =>
-              e.id === action.exameId ? { ...e, tipoExame: action.tipoExame } : e
-            ),
-          },
-        },
-      };
-    }
-
-    case "SET_NOTA_EXAME_DISCIPLINA": {
-      const prev = state.dadosDisciplinas[action.disciplinaId];
-      if (!prev) return state;
-      return {
-        ...state,
-        dadosDisciplinas: {
-          ...state.dadosDisciplinas,
-          [action.disciplinaId]: {
-            ...prev,
-            exames: prev.exames.map((e) =>
-              e.id === action.exameId ? { ...e, notaExame: action.notaExame } : e
-            ),
-          },
-        },
-      };
-    }
-
     case "SET_OPCAO_12": {
       const key = action.slot === 1 ? "opcional1" : "opcional2";
       return {
@@ -224,7 +143,7 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
         [key]: {
           ...state[key],
           [action.campo]: action.valor,
-          ...(action.campo === "nome" ? { notas: notasVazias(), exames: [] } : {}),
+          ...(action.campo === "nome" ? { notas: notasVazias() } : {}),
         },
       };
     }
@@ -240,52 +159,41 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
       };
     }
 
-    case "ADD_EXAME_OPCAO": {
-      const key = action.slot === 1 ? "opcional1" : "opcional2";
-      const novoExame = { id: action.codigoExame, tipoExame: null as "interno" | "ingresso" | null, notaExame: "" };
+    case "ADD_EXAME": {
+      const novoExame: ExameSelecionado = {
+        id: `${Date.now()}-${Math.random()}`,
+        codigoExame: action.codigoExame,
+        tipoExame: null,
+        notaExame: "",
+      };
       return {
         ...state,
-        [key]: {
-          ...state[key],
-          exames: [...state[key].exames, novoExame],
-        },
+        exames: [...state.exames, novoExame],
       };
     }
 
-    case "REMOVE_EXAME_OPCAO": {
-      const key = action.slot === 1 ? "opcional1" : "opcional2";
+    case "REMOVE_EXAME": {
       return {
         ...state,
-        [key]: {
-          ...state[key],
-          exames: state[key].exames.filter((e) => e.id !== action.exameId),
-        },
+        exames: state.exames.filter((e) => e.id !== action.exameId),
       };
     }
 
-    case "SET_TIPO_EXAME_OPCAO": {
-      const key = action.slot === 1 ? "opcional1" : "opcional2";
+    case "SET_TIPO_EXAME": {
       return {
         ...state,
-        [key]: {
-          ...state[key],
-          exames: state[key].exames.map((e) =>
-            e.id === action.exameId ? { ...e, tipoExame: action.tipoExame } : e
-          ),
-        },
+        exames: state.exames.map((e) =>
+          e.id === action.exameId ? { ...e, tipoExame: action.tipoExame } : e
+        ),
       };
     }
 
-    case "SET_NOTA_EXAME_OPCAO": {
-      const key = action.slot === 1 ? "opcional1" : "opcional2";
+    case "SET_NOTA_EXAME": {
       return {
         ...state,
-        [key]: {
-          ...state[key],
-          exames: state[key].exames.map((e) =>
-            e.id === action.exameId ? { ...e, notaExame: action.notaExame } : e
-          ),
-        },
+        exames: state.exames.map((e) =>
+          e.id === action.exameId ? { ...e, notaExame: action.notaExame } : e
+        ),
       };
     }
 
@@ -305,27 +213,18 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
 
         const cif = calcularCIFComTipo(notasPorAno, disc.tipo);
 
-        // Processar exames adicionados
-        const examesAplicados = (dados?.exames ?? []).map((exame) => {
-          const notaExameNum = normalizarNota(exame.notaExame);
-          const cfdResultante = cif !== null ? calcularCFD(cif, notaExameNum, exame.tipoExame) : null;
-          return {
-            codigo: exame.id,
-            nome: exame.id, // será preenchido com getNomeExame no componente
-            nota: notaExameNum,
-            tipoExame: exame.tipoExame,
-            cfdResultante,
-          };
-        });
-
-        // CFD final é o melhor resultado (CIF ou melhor CFD com exame)
+        // Procurar exame que corresponde a esta disciplina
+        let exameAplicado: ExameSelecionado | null = null;
         let cfd = cif;
-        if (examesAplicados.length > 0) {
-          const cfdComExames = examesAplicados
-            .filter((e) => e.cfdResultante !== null)
-            .map((e) => e.cfdResultante!);
-          if (cfdComExames.length > 0) {
-            cfd = Math.max(cif ?? 0, ...cfdComExames);
+
+        if (disc.codigoExame) {
+          const exame = state.exames.find((e) => e.codigoExame === disc.codigoExame);
+          if (exame && exame.tipoExame === "interno") {
+            const notaNum = normalizarNota(exame.notaExame);
+            if (cif !== null && notaNum !== null) {
+              cfd = calcularCFD(cif, notaNum, "interno");
+              exameAplicado = exame;
+            }
           }
         }
 
@@ -336,7 +235,7 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
           peso: getPesoDisciplina(disc.tipo),
           cif,
           cfd,
-          examesAplicados,
+          exameAplicado,
         });
       }
 
@@ -348,36 +247,14 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
         if (!opcao.nome) continue;
         const cif = calcularCIFComTipo([opcao.notas], "anual");
 
-        const examesAplicados = (opcao.exames ?? []).map((exame) => {
-          const notaExameNum = normalizarNota(exame.notaExame);
-          const cfdResultante = cif !== null ? calcularCFD(cif, notaExameNum, exame.tipoExame) : null;
-          return {
-            codigo: exame.id,
-            nome: exame.id,
-            nota: notaExameNum,
-            tipoExame: exame.tipoExame,
-            cfdResultante,
-          };
-        });
-
-        let cfd = cif;
-        if (examesAplicados.length > 0) {
-          const cfdComExames = examesAplicados
-            .filter((e) => e.cfdResultante !== null)
-            .map((e) => e.cfdResultante!);
-          if (cfdComExames.length > 0) {
-            cfd = Math.max(cif ?? 0, ...cfdComExames);
-          }
-        }
-
         resultados.push({
           id: `opcional-${slot}`,
           nome: opcao.nome,
           tipo: "anual",
           peso: 1,
           cif,
-          cfd,
-          examesAplicados,
+          cfd: cif,
+          exameAplicado: null,
         });
       }
 

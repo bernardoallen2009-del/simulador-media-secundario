@@ -1,19 +1,18 @@
 // =============================================================================
 // DADOS DOS CURSOS CIENTÍFICO-HUMANÍSTICOS — Ensino Secundário Portugal
 // Design: Apple Education White — dados estruturados para cálculo de médias
-// Atualizado com: EF trienal, Inglês bienal, exames flexíveis, substituições
+// Atualizado: Estrutura com disciplinas obrigatórias/opcionais 10-11, exames por disciplina
 // =============================================================================
 
 export type TipoDisciplina = "trienal" | "bienal" | "anual";
-export type AnoDisciplina = "10" | "11" | "12" | "10-11" | "10-11-12";
 
 export interface Disciplina {
   id: string;
   nome: string;
-  tipo: TipoDisciplina; // define o peso: trienal=3, bienal=2, anual=1
-  anos: ("10" | "11" | "12")[]; // anos letivos em que a disciplina ocorre
+  tipo: TipoDisciplina;
+  anos: ("10" | "11" | "12")[];
   exameNacional: boolean;
-  codigoExame?: string;
+  codigoExame?: string; // código do exame que corresponde a esta disciplina
 }
 
 export interface Curso {
@@ -48,6 +47,27 @@ export const EXAMES_DISPONIVEIS = [
 
 export type CodigoExame = (typeof EXAMES_DISPONIVEIS)[number]["codigo"];
 
+// Mapeamento: código exame → ID disciplina que corresponde
+export const EXAME_PARA_DISCIPLINA: Record<string, string> = {
+  "550": "ingles", // Inglês
+  "623": "historia-a", // História A
+  "635": "matematica-a", // Matemática A
+  "639": "portugues", // Português
+  "702": "bio-geo", // Biologia e Geologia
+  "706": "desenho-a", // Desenho A
+  "708": "geometria-desc", // Geometria Descritiva A
+  "712": "economia-a", // Economia A
+  "714": "filosofia", // Filosofia
+  "715": "fqa", // Física e Química A
+  "719": "geografia-a", // Geografia A
+  "723": "historia-b", // História B
+  "724": "hca", // História da Cultura e das Artes
+  "732": "latim-a", // Latim A
+  "734": "literatura-pt", // Literatura Portuguesa
+  "735": "matematica-b", // Matemática B
+  "835": "macs", // MACS
+};
+
 // Disciplinas de 12º ano opcionais (anuais, peso=1)
 export const DISCIPLINAS_12_OPCOES = [
   "Aplicações Informáticas B",
@@ -76,7 +96,7 @@ export const CURSOS: Curso[] = [
     disciplinas: [
       // Trienais (peso 3) — 10º, 11º, 12º
       {
-        id: "ct-portugues",
+        id: "portugues",
         nome: "Português",
         tipo: "trienal",
         anos: ["10", "11", "12"],
@@ -84,7 +104,7 @@ export const CURSOS: Curso[] = [
         codigoExame: "639",
       },
       {
-        id: "ct-matematica",
+        id: "matematica-a",
         nome: "Matemática A",
         tipo: "trienal",
         anos: ["10", "11", "12"],
@@ -92,37 +112,38 @@ export const CURSOS: Curso[] = [
         codigoExame: "635",
       },
       {
-        id: "ct-ef",
+        id: "ef",
         nome: "Educação Física",
         tipo: "trienal",
         anos: ["10", "11", "12"],
         exameNacional: false,
       },
-      // Bienais (peso 2) — 10º e 11º
+      // Bienais (peso 2) — 10º e 11º — OBRIGATÓRIAS
       {
-        id: "ct-filosofia",
-        nome: "Filosofia",
-        tipo: "bienal",
-        anos: ["10", "11"],
-        exameNacional: false,
-      },
-      {
-        id: "ct-fqa",
+        id: "fqa",
         nome: "Física e Química A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "ct-bio-geo",
-        nome: "Biologia e Geologia / Geometria Descritiva A",
+        id: "ingles",
+        nome: "Inglês",
+        tipo: "bienal",
+        anos: ["10", "11"],
+        exameNacional: false,
+      },
+      // Bienais (peso 2) — 10º e 11º — OPÇÕES (escolher 1)
+      {
+        id: "bio-geo",
+        nome: "Biologia e Geologia",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "ct-ingles",
-        nome: "Inglês",
+        id: "geometria-desc",
+        nome: "Geometria Descritiva A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -137,7 +158,7 @@ export const CURSOS: Curso[] = [
     disciplinas: [
       // Trienais (peso 3)
       {
-        id: "cse-portugues",
+        id: "portugues",
         nome: "Português",
         tipo: "trienal",
         anos: ["10", "11", "12"],
@@ -145,7 +166,7 @@ export const CURSOS: Curso[] = [
         codigoExame: "639",
       },
       {
-        id: "cse-matematica",
+        id: "macs",
         nome: "Matemática Aplicada às Ciências Sociais",
         tipo: "trienal",
         anos: ["10", "11", "12"],
@@ -153,37 +174,38 @@ export const CURSOS: Curso[] = [
         codigoExame: "835",
       },
       {
-        id: "cse-ef",
+        id: "ef",
         nome: "Educação Física",
         tipo: "trienal",
         anos: ["10", "11", "12"],
         exameNacional: false,
       },
-      // Bienais (peso 2)
+      // Bienais (peso 2) — 10º e 11º — OBRIGATÓRIAS
       {
-        id: "cse-filosofia",
-        nome: "Filosofia",
-        tipo: "bienal",
-        anos: ["10", "11"],
-        exameNacional: false,
-      },
-      {
-        id: "cse-economia",
+        id: "economia-a",
         nome: "Economia A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "cse-historia-geografia",
-        nome: "História A / História B / Geografia A",
+        id: "ingles",
+        nome: "Inglês",
+        tipo: "bienal",
+        anos: ["10", "11"],
+        exameNacional: false,
+      },
+      // Bienais (peso 2) — 10º e 11º — OPÇÕES (escolher 1)
+      {
+        id: "historia-b",
+        nome: "História B",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "cse-ingles",
-        nome: "Inglês",
+        id: "geografia-a",
+        nome: "Geografia A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -193,12 +215,12 @@ export const CURSOS: Curso[] = [
   {
     id: "lh",
     nome: "Línguas e Humanidades",
-    descricao: "História, Geografia, Língua Estrangeira",
+    descricao: "História A, Geografia, Latim, Literatura, MACS",
     cor: "#FF9500",
     disciplinas: [
       // Trienais (peso 3)
       {
-        id: "lh-portugues",
+        id: "portugues",
         nome: "Português",
         tipo: "trienal",
         anos: ["10", "11", "12"],
@@ -206,7 +228,7 @@ export const CURSOS: Curso[] = [
         codigoExame: "639",
       },
       {
-        id: "lh-historia",
+        id: "historia-a",
         nome: "História A",
         tipo: "trienal",
         anos: ["10", "11", "12"],
@@ -214,37 +236,52 @@ export const CURSOS: Curso[] = [
         codigoExame: "623",
       },
       {
-        id: "lh-ef",
+        id: "ef",
         nome: "Educação Física",
         tipo: "trienal",
         anos: ["10", "11", "12"],
         exameNacional: false,
       },
-      // Bienais (peso 2)
+      // Bienais (peso 2) — 10º e 11º — OBRIGATÓRIA
       {
-        id: "lh-filosofia",
-        nome: "Filosofia",
+        id: "ingles",
+        nome: "Inglês",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
+      // Bienais (peso 2) — 10º e 11º — OPÇÕES (escolher 2)
       {
-        id: "lh-geografia",
+        id: "geografia-a",
         nome: "Geografia A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "lh-lingua",
-        nome: "Língua Estrangeira I, II ou III",
+        id: "latim-a",
+        nome: "Latim A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "lh-ingles",
-        nome: "Inglês",
+        id: "lingua-estrangeira",
+        nome: "Língua Estrangeira II ou III",
+        tipo: "bienal",
+        anos: ["10", "11"],
+        exameNacional: false,
+      },
+      {
+        id: "literatura-pt",
+        nome: "Literatura Portuguesa",
+        tipo: "bienal",
+        anos: ["10", "11"],
+        exameNacional: false,
+      },
+      {
+        id: "macs",
+        nome: "Matemática Aplicada às Ciências Sociais",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -259,7 +296,7 @@ export const CURSOS: Curso[] = [
     disciplinas: [
       // Trienais (peso 3)
       {
-        id: "av-portugues",
+        id: "portugues",
         nome: "Português",
         tipo: "trienal",
         anos: ["10", "11", "12"],
@@ -267,7 +304,7 @@ export const CURSOS: Curso[] = [
         codigoExame: "639",
       },
       {
-        id: "av-desenho",
+        id: "desenho-a",
         nome: "Desenho A",
         tipo: "trienal",
         anos: ["10", "11", "12"],
@@ -275,37 +312,38 @@ export const CURSOS: Curso[] = [
         codigoExame: "706",
       },
       {
-        id: "av-ef",
+        id: "ef",
         nome: "Educação Física",
         tipo: "trienal",
         anos: ["10", "11", "12"],
         exameNacional: false,
       },
-      // Bienais (peso 2)
+      // Bienais (peso 2) — 10º e 11º — OBRIGATÓRIA
       {
-        id: "av-filosofia",
-        nome: "Filosofia",
+        id: "ingles",
+        nome: "Inglês",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
+      // Bienais (peso 2) — 10º e 11º — OPÇÕES (escolher 2)
       {
-        id: "av-geometria",
+        id: "geometria-desc",
         nome: "Geometria Descritiva A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "av-hca",
+        id: "hca",
         nome: "História da Cultura e das Artes",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "av-ingles",
-        nome: "Inglês",
+        id: "matematica",
+        nome: "Matemática",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -321,6 +359,28 @@ export function getPesoDisciplina(tipo: TipoDisciplina): number {
     case "trienal": return 3;
     case "bienal": return 2;
     case "anual": return 1;
+  }
+}
+
+export function calcularCIFComTipo(
+  notasPorAno: Array<{ p1: string; p2: string; p3: string }>,
+  tipo: "trienal" | "bienal" | "anual"
+): number | null {
+  if (tipo === "anual") {
+    if (notasPorAno.length === 0) return null;
+    const periodos = [
+      normalizarNota(notasPorAno[0].p1),
+      normalizarNota(notasPorAno[0].p2),
+      normalizarNota(notasPorAno[0].p3),
+    ];
+    const validos = periodos.filter((p): p is number => p !== null && !isNaN(p));
+    if (validos.length === 0) return null;
+    return validos.reduce((a, b) => a + b, 0) / validos.length;
+  } else {
+    const terceirosPeríodos = notasPorAno.map((n) => normalizarNota(n.p3));
+    const validos = terceirosPeríodos.filter((p): p is number => p !== null && !isNaN(p));
+    if (validos.length === 0) return null;
+    return validos.reduce((a, b) => a + b, 0) / validos.length;
   }
 }
 
@@ -349,34 +409,17 @@ export function calcularMediaFinal(disciplinas: { cfd: number; peso: number }[])
 export function normalizarNota(nota: number | string): number | null {
   const n = typeof nota === "string" ? parseFloat(nota.replace(",", ".")) : nota;
   if (isNaN(n)) return null;
-  // Se nota > 20, assume escala 0-200 e converte
   if (n > 20) return Math.round((n / 200) * 20 * 10) / 10;
   return Math.min(20, Math.max(0, n));
-}
-
-export function calcularCIFComTipo(
-  notasPorAno: Array<{ p1: string; p2: string; p3: string }>,
-  tipo: "trienal" | "bienal" | "anual"
-): number | null {
-  if (tipo === "anual") {
-    if (notasPorAno.length === 0) return null;
-    const periodos = [
-      normalizarNota(notasPorAno[0].p1),
-      normalizarNota(notasPorAno[0].p2),
-      normalizarNota(notasPorAno[0].p3),
-    ];
-    const validos = periodos.filter((p): p is number => p !== null && !isNaN(p));
-    if (validos.length === 0) return null;
-    return validos.reduce((a, b) => a + b, 0) / validos.length;
-  } else {
-    const terceirosPeríodos = notasPorAno.map((n) => normalizarNota(n.p3));
-    const validos = terceirosPeríodos.filter((p): p is number => p !== null && !isNaN(p));
-    if (validos.length === 0) return null;
-    return validos.reduce((a, b) => a + b, 0) / validos.length;
-  }
 }
 
 export function getNomeExame(codigo: string): string {
   const exame = EXAMES_DISPONIVEIS.find((e) => e.codigo === codigo);
   return exame?.nome ?? codigo;
+}
+
+export function getDisciplinaParaExame(codigoExame: string, curso: Curso): Disciplina | null {
+  const discId = EXAME_PARA_DISCIPLINA[codigoExame];
+  if (!discId) return null;
+  return curso.disciplinas.find((d) => d.id === discId) ?? null;
 }

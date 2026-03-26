@@ -1,12 +1,12 @@
 // =============================================================================
-// PASSO 4 — Exames Nacionais (Sistema Flexível)
-// Design: Apple Education White — adicionar qualquer exame disponível
+// PASSO 4 — Exames Nacionais (Nova Lógica)
+// Design: Apple Education White — selecionar exames e calcular CFD automaticamente
 // =============================================================================
 
 import { motion } from "framer-motion";
-import { CURSOS, EXAMES_DISPONIVEIS, calcularCIFComTipo, calcularCFD, normalizarNota, getNomeExame } from "@/lib/cursos";
+import { CURSOS, EXAMES_DISPONIVEIS, calcularCFD, normalizarNota, getNomeExame, getDisciplinaParaExame } from "@/lib/cursos";
 import { useSimulador } from "@/contexts/SimuladorContext";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 
 function NotaExameInput({
   value,
@@ -42,8 +42,8 @@ function TipoExameSelector({
 }) {
   const opcoes: { val: "interno" | "ingresso" | null; label: string }[] = [
     { val: null, label: "Nenhum" },
-    { val: "interno", label: "Interno" },
-    { val: "ingresso", label: "Ingresso" },
+    { val: "interno", label: "Aluno Inscrito" },
+    { val: "ingresso", label: "Prova de Ingresso" },
   ];
 
   return (
@@ -70,27 +70,28 @@ export default function Passo4Exames() {
   const curso = CURSOS.find((c) => c.id === state.cursoPorId);
   if (!curso) return null;
 
-  const getCIFDisc = (discId: string) => {
-    const dados = state.dadosDisciplinas[discId];
-    const disc = curso.disciplinas.find((d) => d.id === discId);
-    if (!disc || !dados) return null;
+  // Exames já adicionados
+  const examesAdicionados = new Set(state.exames.map((e) => e.codigoExame));
+  const examesDisponiveis = EXAMES_DISPONIVEIS.filter((e) => !examesAdicionados.has(e.codigo));
+
+  // Calcular CFD para cada exame
+  const calcularCFDParaExame = (codigoExame: string, tipoExame: "interno" | "ingresso" | null, notaExame: string) => {
+    const disc = getDisciplinaParaExame(codigoExame, curso);
+    if (!disc) return null;
+
+    const dados = state.dadosDisciplinas[disc.id];
+    if (!dados) return null;
+
+    // Calcular CIF da disciplina
     const notasPorAno = disc.anos.map((ano) => dados.notas[ano]);
-    return calcularCIFComTipo(notasPorAno, disc.tipo);
-  };
+    const { calcularCIFComTipo } = require("@/lib/cursos");
+    const cif = calcularCIFComTipo(notasPorAno, disc.tipo);
+    if (cif === null) return null;
 
-  const getCIFOpcao = (slot: 1 | 2) => {
-    const opcao = slot === 1 ? state.opcional1 : state.opcional2;
-    return calcularCIFComTipo([opcao.notas], "anual");
-  };
+    const notaNum = normalizarNota(notaExame);
+    if (notaNum === null) return null;
 
-  // Exames já adicionados (para não permitir duplicatas)
-  const examesAdicionadosPorDisc = (discId: string) => {
-    return new Set(state.dadosDisciplinas[discId]?.exames.map((e) => e.id) ?? []);
-  };
-
-  const examesAdicionadosOpcao = (slot: 1 | 2) => {
-    const opcao = slot === 1 ? state.opcional1 : state.opcional2;
-    return new Set(opcao.exames.map((e) => e.id));
+    return calcularCFD(cif, notaNum, tipoExame);
   };
 
   return (
@@ -105,224 +106,141 @@ export default function Passo4Exames() {
           Exames Nacionais
         </h2>
         <p className="text-[#6E6E73] text-base">
-          Adiciona exames para qualquer disciplina. Como aluno interno: CFD = CIF × 75% + Exame × 25%.
+          Seleciona os exames que vais fazer. Para alunos inscritos: CFD = CIF (arredondada) × 75% + Nota Exame × 25%.
         </p>
       </div>
 
-      <div className="space-y-4">
-        {/* Disciplinas do curso */}
-        {curso.disciplinas.map((disc, idx) => {
-          const cif = getCIFDisc(disc.id);
-          const examesAdicionados = examesAdicionadosPorDisc(disc.id);
-          const examesDisponiveis = EXAMES_DISPONIVEIS.filter((e) => !examesAdicionados.has(e.codigo));
+      {/* Exames já adicionados */}
+      {state.exames.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-2xl border border-[#E5E5EA] shadow-sm overflow-hidden mb-6"
+        >
+          <div className="px-5 py-3.5 border-b border-[#F2F2F7]">
+            <h3 className="text-[15px] font-semibold text-[#1D1D1F]">Exames Selecionados</h3>
+          </div>
 
-          return (
-            <motion.div
-              key={disc.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: idx * 0.05 }}
-              className="bg-white rounded-2xl border border-[#E5E5EA] shadow-sm overflow-hidden"
-            >
-              <div className="px-5 py-3.5 border-b border-[#F2F2F7]">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[15px] font-semibold text-[#1D1D1F]">{disc.nome}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[12px] text-[#AEAEB2]">CIF</span>
-                    <span className={`text-sm font-semibold tabular-nums px-2 py-0.5 rounded-md
-                      ${cif === null ? "text-[#AEAEB2]" :
-                        cif >= 14 ? "text-emerald-600 bg-emerald-50" :
-                        cif >= 10 ? "text-amber-600 bg-amber-50" :
-                        "text-red-600 bg-red-50"}`}>
-                      {cif !== null ? cif.toFixed(1) : "—"}
-                    </span>
-                  </div>
-                </div>
+          <div className="divide-y divide-[#F2F2F7]">
+            {state.exames.map((exame, idx) => {
+              const disc = getDisciplinaParaExame(exame.codigoExame, curso);
+              const cfd = calcularCFDParaExame(exame.codigoExame, exame.tipoExame, exame.notaExame);
 
-                {/* Exames adicionados */}
-                {state.dadosDisciplinas[disc.id]?.exames.length ?? 0 > 0 ? (
-                  <div className="space-y-2">
-                    {(state.dadosDisciplinas[disc.id]?.exames ?? []).map((exame) => {
-                      const notaNum = normalizarNota(exame.notaExame);
-                      const cfd = cif !== null ? calcularCFD(cif, notaNum, exame.tipoExame) : null;
-                      return (
-                        <div key={exame.id} className="flex items-center gap-2 bg-[#F5F5F7] rounded-lg p-2.5">
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[13px] font-medium text-[#1D1D1F]">{getNomeExame(exame.id)}</div>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <TipoExameSelector
-                                value={exame.tipoExame}
-                                onChange={(v) =>
-                                  dispatch({ type: "SET_TIPO_EXAME_DISCIPLINA", disciplinaId: disc.id, exameId: exame.id, tipoExame: v })
-                                }
-                              />
-                              {exame.tipoExame !== null && (
-                                <div className="flex items-center gap-2">
-                                  <NotaExameInput
-                                    value={exame.notaExame}
-                                    onChange={(v) =>
-                                      dispatch({ type: "SET_NOTA_EXAME_DISCIPLINA", disciplinaId: disc.id, exameId: exame.id, notaExame: v })
-                                    }
-                                  />
-                                  <span className={`text-[12px] font-semibold tabular-nums ${
-                                    cfd !== null
-                                      ? cfd >= 14 ? "text-emerald-600" : cfd >= 10 ? "text-amber-600" : "text-red-600"
-                                      : "text-[#AEAEB2]"
-                                  }`}>
-                                    CFD: {cfd !== null ? cfd.toFixed(1) : "—"}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() =>
-                              dispatch({ type: "REMOVE_EXAME_DISCIPLINA", disciplinaId: disc.id, exameId: exame.id })
-                            }
-                            className="p-1 hover:bg-red-100 rounded-lg transition-colors duration-150 text-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+              return (
+                <motion.div
+                  key={exame.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, delay: idx * 0.05 }}
+                  className="px-5 py-4"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="flex-1">
+                      <div className="text-[15px] font-semibold text-[#1D1D1F]">
+                        {getNomeExame(exame.codigoExame)}
+                      </div>
+                      {disc && (
+                        <div className="text-[12px] text-[#AEAEB2] mt-1">
+                          Disciplina: <span className="font-medium text-[#6E6E73]">{disc.nome}</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Botão adicionar exame */}
-              {examesDisponiveis.length > 0 && (
-                <div className="px-5 py-3 bg-[#F5F5F7]">
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        dispatch({ type: "ADD_EXAME_DISCIPLINA", disciplinaId: disc.id, codigoExame: e.target.value });
-                        e.target.value = "";
+                      )}
+                    </div>
+                    <button
+                      onClick={() =>
+                        dispatch({ type: "REMOVE_EXAME", exameId: exame.id })
                       }
-                    }}
-                    className="w-full text-[13px] rounded-lg border border-[#D2D2D7] bg-white text-[#1D1D1F] px-3 py-2 outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20 transition-all duration-150"
-                  >
-                    <option value="">+ Adicionar exame…</option>
-                    {examesDisponiveis.map((e) => (
-                      <option key={e.codigo} value={e.codigo}>
-                        {e.nome} ({e.codigo})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </motion.div>
-          );
-        })}
-
-        {/* Opcionais de 12º */}
-        {[1, 2].map((slot) => {
-          const opcao = slot === 1 ? state.opcional1 : state.opcional2;
-          if (!opcao.nome) return null;
-
-          const cif = getCIFOpcao(slot as 1 | 2);
-          const examesAdicionados = examesAdicionadosOpcao(slot as 1 | 2);
-          const examesDisponiveis = EXAMES_DISPONIVEIS.filter((e) => !examesAdicionados.has(e.codigo));
-
-          return (
-            <motion.div
-              key={`opcao-${slot}`}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-2xl border border-[#E5E5EA] shadow-sm overflow-hidden"
-            >
-              <div className="px-5 py-3.5 border-b border-[#F2F2F7]">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[15px] font-semibold text-[#1D1D1F]">{opcao.nome}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[12px] text-[#AEAEB2]">CIF</span>
-                    <span className={`text-sm font-semibold tabular-nums px-2 py-0.5 rounded-md
-                      ${cif === null ? "text-[#AEAEB2]" :
-                        cif >= 14 ? "text-emerald-600 bg-emerald-50" :
-                        cif >= 10 ? "text-amber-600 bg-amber-50" :
-                        "text-red-600 bg-red-50"}`}>
-                      {cif !== null ? cif.toFixed(1) : "—"}
-                    </span>
+                      className="p-1 hover:bg-red-100 rounded-lg transition-colors duration-150 text-red-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                </div>
 
-                {/* Exames adicionados */}
-                {opcao.exames.length > 0 && (
-                  <div className="space-y-2">
-                    {opcao.exames.map((exame) => {
-                      const notaNum = normalizarNota(exame.notaExame);
-                      const cfd = cif !== null ? calcularCFD(cif, notaNum, exame.tipoExame) : null;
-                      return (
-                        <div key={exame.id} className="flex items-center gap-2 bg-[#F5F5F7] rounded-lg p-2.5">
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[13px] font-medium text-[#1D1D1F]">{getNomeExame(exame.id)}</div>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <TipoExameSelector
-                                value={exame.tipoExame}
-                                onChange={(v) =>
-                                  dispatch({ type: "SET_TIPO_EXAME_OPCAO", slot: slot as 1 | 2, exameId: exame.id, tipoExame: v })
-                                }
-                              />
-                              {exame.tipoExame !== null && (
-                                <div className="flex items-center gap-2">
-                                  <NotaExameInput
-                                    value={exame.notaExame}
-                                    onChange={(v) =>
-                                      dispatch({ type: "SET_NOTA_EXAME_OPCAO", slot: slot as 1 | 2, exameId: exame.id, notaExame: v })
-                                    }
-                                  />
-                                  <span className={`text-[12px] font-semibold tabular-nums ${
-                                    cfd !== null
-                                      ? cfd >= 14 ? "text-emerald-600" : cfd >= 10 ? "text-amber-600" : "text-red-600"
-                                      : "text-[#AEAEB2]"
-                                  }`}>
-                                    CFD: {cfd !== null ? cfd.toFixed(1) : "—"}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() =>
-                              dispatch({ type: "REMOVE_EXAME_OPCAO", slot: slot as 1 | 2, exameId: exame.id })
+                  <div className="space-y-2.5">
+                    <div>
+                      <label className="text-[12px] font-medium text-[#AEAEB2] block mb-1.5">
+                        Tipo de Exame
+                      </label>
+                      <TipoExameSelector
+                        value={exame.tipoExame}
+                        onChange={(v) =>
+                          dispatch({ type: "SET_TIPO_EXAME", exameId: exame.id, tipoExame: v })
+                        }
+                      />
+                    </div>
+
+                    {exame.tipoExame !== null && (
+                      <div className="flex items-end gap-3">
+                        <div className="flex-1">
+                          <label className="text-[12px] font-medium text-[#AEAEB2] block mb-1.5">
+                            Nota do Exame
+                          </label>
+                          <NotaExameInput
+                            value={exame.notaExame}
+                            onChange={(v) =>
+                              dispatch({ type: "SET_NOTA_EXAME", exameId: exame.id, notaExame: v })
                             }
-                            className="p-1 hover:bg-red-100 rounded-lg transition-colors duration-150 text-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+                          />
                         </div>
-                      );
-                    })}
+                        {disc && cfd !== null && (
+                          <div className="text-center">
+                            <div className="text-[12px] font-medium text-[#AEAEB2] mb-1">CFD</div>
+                            <span className={`inline-block px-2.5 py-1 rounded-lg text-sm font-semibold tabular-nums
+                              ${cfd >= 14 ? "text-emerald-600 bg-emerald-50" :
+                                cfd >= 10 ? "text-amber-600 bg-amber-50" :
+                                "text-red-600 bg-red-50"}`}>
+                              {cfd.toFixed(1)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
-              {/* Botão adicionar exame */}
-              {examesDisponiveis.length > 0 && (
-                <div className="px-5 py-3 bg-[#F5F5F7]">
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        dispatch({ type: "ADD_EXAME_OPCAO", slot: slot as 1 | 2, codigoExame: e.target.value });
-                        e.target.value = "";
-                      }
-                    }}
-                    className="w-full text-[13px] rounded-lg border border-[#D2D2D7] bg-white text-[#1D1D1F] px-3 py-2 outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20 transition-all duration-150"
-                  >
-                    <option value="">+ Adicionar exame…</option>
-                    {examesDisponiveis.map((e) => (
-                      <option key={e.codigo} value={e.codigo}>
-                        {e.nome} ({e.codigo})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* Adicionar novo exame */}
+      {examesDisponiveis.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-2xl border border-[#E5E5EA] shadow-sm overflow-hidden"
+        >
+          <div className="px-5 py-3.5 border-b border-[#F2F2F7]">
+            <h3 className="text-[15px] font-semibold text-[#1D1D1F]">Adicionar Exame</h3>
+          </div>
+
+          <div className="px-5 py-4">
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  dispatch({ type: "ADD_EXAME", codigoExame: e.target.value });
+                  e.target.value = "";
+                }
+              }}
+              className="w-full text-[13px] rounded-lg border border-[#D2D2D7] bg-white text-[#1D1D1F] px-3 py-2.5 outline-none focus:border-[#0071E3] focus:ring-2 focus:ring-[#0071E3]/20 transition-all duration-150"
+            >
+              <option value="">Seleciona um exame…</option>
+              {examesDisponiveis.map((e) => (
+                <option key={e.codigo} value={e.codigo}>
+                  {e.nome} ({e.codigo})
+                </option>
+              ))}
+            </select>
+          </div>
+        </motion.div>
+      )}
+
+      {examesDisponiveis.length === 0 && state.exames.length > 0 && (
+        <div className="bg-[#F5F5F7] rounded-2xl p-4 text-center text-[13px] text-[#6E6E73]">
+          Todos os exames foram adicionados.
+        </div>
+      )}
 
       <div className="mt-6 flex items-center justify-between">
         <button

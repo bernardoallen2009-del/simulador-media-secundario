@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { motion } from "framer-motion";
-import { CURSOS, EXAMES_DISPONIVEIS, calcularCFD, normalizarNota, getNomeExame, getDisciplinaParaExame } from "@/lib/cursos";
+import { CURSOS, EXAMES_DISPONIVEIS, calcularCFD, calcularCIFComTipo, normalizarNota, getNomeExame, getDisciplinaParaExame } from "@/lib/cursos";
 import { useSimulador } from "@/contexts/SimuladorContext";
 import { toast } from "sonner";
 import { X } from "lucide-react";
@@ -85,7 +85,6 @@ export default function Passo4Exames() {
 
     // Calcular CIF da disciplina
     const notasPorAno = disc.anos.map((ano) => dados.notas[ano]);
-    const { calcularCIFComTipo } = require("@/lib/cursos");
     const cif = calcularCIFComTipo(notasPorAno, disc.tipo);
     if (cif === null) return null;
 

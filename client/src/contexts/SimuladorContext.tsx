@@ -70,6 +70,7 @@ export interface SimuladorState {
   exames: ExameSelecionado[]; // Exames globais
   resultado: ResultadoFinal | null;
   opcaoBioGeomDesc: "bio-geo" | "geometria-desc" | null;
+  opcaoGeografiaHistoria: "geografia-a" | "historia-b" | null;
 }
 
 type Action =
@@ -83,6 +84,7 @@ type Action =
   | { type: "SET_TIPO_EXAME"; exameId: string; tipoExame: "interno" | "ingresso" | null }
   | { type: "SET_NOTA_EXAME"; exameId: string; notaExame: string }
   | { type: "SET_OPCAO_BIO_GEOM"; opcao: "bio-geo" | "geometria-desc" }
+  | { type: "SET_OPCAO_GEOGRAFIA_HISTORIA"; opcao: "geografia-a" | "historia-b" }
   | { type: "CALCULAR_RESULTADO"; curso: Curso }
   | { type: "RESET" };
 
@@ -104,6 +106,7 @@ const initialState: SimuladorState = {
   exames: [],
   resultado: null,
   opcaoBioGeomDesc: null,
+  opcaoGeografiaHistoria: null,
 };
 
 // ─── REDUCER ─────────────────────────────────────────────────────────────────
@@ -207,6 +210,13 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
       };
     }
 
+    case "SET_OPCAO_GEOGRAFIA_HISTORIA": {
+      return {
+        ...state,
+        opcaoGeografiaHistoria: action.opcao,
+      };
+    }
+
     case "CALCULAR_RESULTADO": {
       const curso = action.curso;
       const resultados: ResultadoDisciplina[] = [];
@@ -216,6 +226,10 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
         // Filtrar Bio/GeomDesc para CT
         if (curso.id === "ct" && (disc.id === "bio-geo" || disc.id === "geometria-desc")) {
           if (disc.id !== state.opcaoBioGeomDesc) continue;
+        }
+        // Filtrar Geografia/História para CSE
+        if (curso.id === "cse" && (disc.id === "geografia-a" || disc.id === "historia-b")) {
+          if (disc.id !== state.opcaoGeografiaHistoria) continue;
         }
 
         const dados = state.dadosDisciplinas[disc.id];

@@ -70,10 +70,16 @@ export default function Passo2Notas() {
   };
 
   // Filtrar disciplinas: se CT, mostrar apenas a selecionada (Bio ou GeomDesc)
+  // Se CSE, mostrar apenas a selecionada (Geografia ou História B)
   const disciplinasExibir = curso.disciplinas.filter((disc) => {
     if (state.cursoPorId === "ct") {
       if (disc.id === "bio-geo" || disc.id === "geometria-desc") {
         return disc.id === state.opcaoBioGeomDesc;
+      }
+    }
+    if (state.cursoPorId === "cse") {
+      if (disc.id === "geografia-a" || disc.id === "historia-b") {
+        return disc.id === state.opcaoGeografiaHistoria;
       }
     }
     return true;
@@ -134,6 +140,49 @@ export default function Passo2Notas() {
                 }`}
               >
                 Geometria Descritiva A
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Toggle Geografia/História para CSE */}
+      {state.cursoPorId === "cse" && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6 bg-white rounded-2xl border border-[#E5E5EA] shadow-sm p-4"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-[15px] font-semibold text-[#1D1D1F] mb-1">
+                Opção de História/Geografia (10º-11º)
+              </h3>
+              <p className="text-[13px] text-[#6E6E73]">
+                Escolhe qual disciplina vais fazer
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => dispatch({ type: "SET_OPCAO_GEOGRAFIA_HISTORIA", opcao: "historia-b" })}
+                className={`px-4 py-2 text-[13px] font-medium rounded-lg border transition-all duration-150 whitespace-nowrap ${
+                  state.opcaoGeografiaHistoria === "historia-b"
+                    ? "bg-[#0071E3] text-white border-[#0071E3] shadow-sm"
+                    : "bg-white text-[#1D1D1F] border-[#D2D2D7] hover:border-[#0071E3]/40 hover:bg-[#0071E3]/5"
+                }`}
+              >
+                História B
+              </button>
+              <button
+                onClick={() => dispatch({ type: "SET_OPCAO_GEOGRAFIA_HISTORIA", opcao: "geografia-a" })}
+                className={`px-4 py-2 text-[13px] font-medium rounded-lg border transition-all duration-150 whitespace-nowrap ${
+                  state.opcaoGeografiaHistoria === "geografia-a"
+                    ? "bg-[#0071E3] text-white border-[#0071E3] shadow-sm"
+                    : "bg-white text-[#1D1D1F] border-[#D2D2D7] hover:border-[#0071E3]/40 hover:bg-[#0071E3]/5"
+                }`}
+              >
+                Geografia A
               </button>
             </div>
           </div>

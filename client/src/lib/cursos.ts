@@ -42,7 +42,7 @@ export const EXAMES_DISPONIVEIS = [
   { codigo: "732", nome: "Latim A" },
   { codigo: "734", nome: "Literatura Portuguesa" },
   { codigo: "735", nome: "Matemática B" },
-  { codigo: "835", nome: "Matemática Aplicada às Ciências Sociais" },
+  { codigo: "835", nome: "Matemática A" },
 ] as const;
 
 export type CodigoExame = (typeof EXAMES_DISPONIVEIS)[number]["codigo"];
@@ -125,6 +125,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "715",
       },
       {
         id: "ingles",
@@ -132,6 +133,15 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "550",
+      },
+      {
+        id: "filosofia",
+        nome: "Filosofia",
+        tipo: "bienal",
+        anos: ["10", "11"],
+        exameNacional: false,
+        codigoExame: "714",
       },
       // Bienais (peso 2) — 10º e 11º — OPÇÕES (escolher 1)
       {
@@ -169,7 +179,7 @@ export const CURSOS: Curso[] = [
       },
       {
         id: "macs",
-        nome: "Matemática Aplicada às Ciências Sociais",
+        nome: "Matemática A",
         tipo: "trienal",
         anos: ["10", "11", "12"],
         exameNacional: true,
@@ -189,6 +199,7 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "712",
       },
       {
         id: "ingles",
@@ -196,6 +207,15 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "550",
+      },
+      {
+        id: "filosofia",
+        nome: "Filosofia",
+        tipo: "bienal",
+        anos: ["10", "11"],
+        exameNacional: false,
+        codigoExame: "714",
       },
       // Bienais (peso 2) — 10º e 11º — OPÇÕES (escolher 1)
       {
@@ -253,6 +273,15 @@ export const CURSOS: Curso[] = [
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "550",
+      },
+      {
+        id: "filosofia",
+        nome: "Filosofia",
+        tipo: "bienal",
+        anos: ["10", "11"],
+        exameNacional: false,
+        codigoExame: "714",
       },
       // Bienais (peso 2) — 10º e 11º — OPÇÕES (escolher 2)
       {
@@ -289,7 +318,7 @@ export const CURSOS: Curso[] = [
       },
       {
         id: "macs",
-        nome: "Matemática Aplicada às Ciências Sociais",
+        nome: "Matemática A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -327,13 +356,22 @@ export const CURSOS: Curso[] = [
         anos: ["10", "11", "12"],
         exameNacional: false,
       },
-      // Bienais (peso 2) — 10º e 11º — OBRIGATÓRIA
+      // Bienais (peso 2) — 10º e 11º — OBRIGATÓRIAS
       {
         id: "ingles",
         nome: "Inglês",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
+        codigoExame: "550",
+      },
+      {
+        id: "filosofia",
+        nome: "Filosofia",
+        tipo: "bienal",
+        anos: ["10", "11"],
+        exameNacional: false,
+        codigoExame: "714",
       },
       // Bienais (peso 2) — 10º e 11º — OPÇÕES (escolher 2)
       {
@@ -351,14 +389,6 @@ export const CURSOS: Curso[] = [
         anos: ["10", "11"],
         exameNacional: false,
         codigoExame: "724",
-      },
-      {
-        id: "filosofia",
-        nome: "Filosofia",
-        tipo: "bienal",
-        anos: ["10", "11"],
-        exameNacional: false,
-        codigoExame: "714",
       },
     ],
   },

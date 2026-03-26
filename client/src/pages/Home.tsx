@@ -6,8 +6,10 @@
 // =============================================================================
 
 import { AnimatePresence, motion } from "framer-motion";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, LogOut } from "lucide-react";
 import { SimuladorProvider, useSimulador } from "@/contexts/SimuladorContext";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import StepperNav from "@/components/StepperNav";
 import Passo1Curso from "@/components/passos/Passo1Curso";
 import Passo2Notas from "@/components/passos/Passo2Notas";
@@ -19,6 +21,7 @@ const HERO_BG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663481093177/TiSqR2
 
 function SimuladorContent() {
   const { state } = useSimulador();
+  const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F5F5F7" }}>
@@ -33,9 +36,20 @@ function SimuladorContent() {
               Simulador de Média
             </span>
           </div>
-          <span className="text-[13px] text-[#AEAEB2] hidden sm:block">
-            Ensino Secundário · Portugal
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] text-[#AEAEB2] hidden sm:block">
+              Ensino Secundário · Portugal
+            </span>
+            {user && (
+              <button
+                onClick={logout}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] text-[#0071E3] hover:bg-[#0071E3]/5 rounded-lg transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sair</span>
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

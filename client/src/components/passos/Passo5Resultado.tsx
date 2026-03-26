@@ -5,7 +5,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { CURSOS, getNomeExame } from "@/lib/cursos";
+import { CURSOS, getNomeExame, otimizarExames } from "@/lib/cursos";
 import { useSimulador } from "@/contexts/SimuladorContext";
 import { RotateCcw, Award, Info } from "lucide-react";
 
@@ -56,6 +56,32 @@ export default function Passo5Resultado() {
   if (!resultado || !curso) return null;
 
   const media = resultado.mediaFinal;
+
+  // Calcular otimização de exames
+  const disciplinasParaOtimizacao = resultado.disciplinas
+    .filter((d) => d.cif !== null)
+    .map((d) => ({
+      id: d.id,
+      cif: d.cif!,
+      peso: d.peso,
+      codigoExame: d.exameAplicado?.codigoExame,
+    }));
+
+  const examesComCFD = state.exames
+    .filter((e) => e.tipoExame === "interno" && e.notaExame)
+    .map((e) => {
+      const disc = curso.disciplinas.find((d) => d.codigoExame === e.codigoExame);
+      if (!disc) return null;
+      const cif = resultado.disciplinas.find((d) => d.id === disc.id)?.cif;
+      if (cif === null || cif === undefined) return null;
+      const notaNum = parseFloat(e.notaExame.replace(",", "."));
+      if (isNaN(notaNum)) return null;
+      const cfd = Math.round(cif * 0.75 + notaNum * 0.25);
+      return { codigoExame: e.codigoExame, notaExame: e.notaExame, cif: cfd };
+    })
+    .filter((e): e is { codigoExame: string; notaExame: string; cif: number } => e !== null);
+
+  const otimizacao = examesComCFD.length > 0 ? otimizarExames(disciplinasParaOtimizacao, examesComCFD) : null;
 
   return (
     <motion.div
@@ -168,6 +194,38 @@ export default function Passo5Resultado() {
           </table>
         </div>
       </motion.div>
+
+      {/* Recomendação de exames */}
+      {otimizacao && otimizacao.examesUsados.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.55 }}
+          className="bg-emerald-50 rounded-2xl border border-emerald-200 p-4 mb-6"
+        >
+          <div className="flex items-start gap-3">
+            <Award className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="text-[15px] font-semibold text-emerald-900 mb-2">
+                Melhor Combinação de Exames
+              </h4>
+              <p className="text-[13px] text-emerald-800 mb-2">
+                Usar estes {otimizacao.examesUsados.length} exame{otimizacao.examesUsados.length !== 1 ? 's' : ''} resulta na melhor média:
+              </p>
+              <div className="space-y-1">
+                {otimizacao.examesUsados.map((exame) => (
+                  <div key={exame.codigoExame} className="text-[13px] text-emerald-800">
+                    • <strong>{getNomeExame(exame.codigoExame)}</strong> (CFD: {exame.cfd})
+                  </div>
+                ))}
+              </div>
+              <p className="text-[13px] font-semibold text-emerald-900 mt-2">
+                Média Final Otimizada: <span className="text-lg">{otimizacao.mediaFinal.toFixed(1)}</span>
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Legenda de fórmula */}
       <motion.div

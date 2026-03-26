@@ -1,6 +1,7 @@
 // =============================================================================
 // DADOS DOS CURSOS CIENTÍFICO-HUMANÍSTICOS — Ensino Secundário Portugal
 // Design: Apple Education White — dados estruturados para cálculo de médias
+// Atualizado com: EF trienal, Inglês bienal, exames flexíveis, substituições
 // =============================================================================
 
 export type TipoDisciplina = "trienal" | "bienal" | "anual";
@@ -23,6 +24,30 @@ export interface Curso {
   disciplinas: Disciplina[];
 }
 
+// ─── LISTA COMPLETA DE EXAMES DISPONÍVEIS ────────────────────────────────────
+
+export const EXAMES_DISPONIVEIS = [
+  { codigo: "550", nome: "Inglês" },
+  { codigo: "623", nome: "História A" },
+  { codigo: "635", nome: "Matemática A" },
+  { codigo: "639", nome: "Português" },
+  { codigo: "702", nome: "Biologia e Geologia" },
+  { codigo: "706", nome: "Desenho A" },
+  { codigo: "708", nome: "Geometria Descritiva A" },
+  { codigo: "712", nome: "Economia A" },
+  { codigo: "714", nome: "Filosofia" },
+  { codigo: "715", nome: "Física e Química A" },
+  { codigo: "719", nome: "Geografia A" },
+  { codigo: "723", nome: "História B" },
+  { codigo: "724", nome: "História da Cultura e das Artes" },
+  { codigo: "732", nome: "Latim A" },
+  { codigo: "734", nome: "Literatura Portuguesa" },
+  { codigo: "735", nome: "Matemática B" },
+  { codigo: "835", nome: "Matemática Aplicada às Ciências Sociais" },
+] as const;
+
+export type CodigoExame = (typeof EXAMES_DISPONIVEIS)[number]["codigo"];
+
 // Disciplinas de 12º ano opcionais (anuais, peso=1)
 export const DISCIPLINAS_12_OPCOES = [
   "Aplicações Informáticas B",
@@ -40,25 +65,13 @@ export const DISCIPLINAS_12_OPCOES = [
 
 export type DisciplinaOpcional12 = (typeof DISCIPLINAS_12_OPCOES)[number];
 
-// Disciplinas com exame nacional (para as opcionais de 12º)
-export const DISCIPLINAS_COM_EXAME_12: Partial<Record<DisciplinaOpcional12, string>> = {
-  "Inglês": "550",
-  "Biologia": "702",
-  "Física": "715",
-  "Química": "716",
-  "Filosofia A": "714",
-  "Economia C": "721",
-  "Geografia C": "719",
-  "Psicologia B": "723",
-};
-
 // ─── CURSOS ──────────────────────────────────────────────────────────────────
 
 export const CURSOS: Curso[] = [
   {
     id: "ct",
     nome: "Ciências e Tecnologias",
-    descricao: "Matemática A, Física-Química, Biologia e Geologia",
+    descricao: "Matemática A, Física-Química, Biologia/Geometria Descritiva",
     cor: "#0071E3",
     disciplinas: [
       // Trienais (peso 3) — 10º, 11º, 12º
@@ -78,6 +91,13 @@ export const CURSOS: Curso[] = [
         exameNacional: true,
         codigoExame: "635",
       },
+      {
+        id: "ct-ef",
+        nome: "Educação Física",
+        tipo: "trienal",
+        anos: ["10", "11", "12"],
+        exameNacional: false,
+      },
       // Bienais (peso 2) — 10º e 11º
       {
         id: "ct-filosofia",
@@ -95,14 +115,14 @@ export const CURSOS: Curso[] = [
       },
       {
         id: "ct-bio-geo",
-        nome: "Biologia e Geologia",
+        nome: "Biologia e Geologia / Geometria Descritiva A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "ct-ef",
-        nome: "Educação Física",
+        id: "ct-ingles",
+        nome: "Inglês",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -112,7 +132,7 @@ export const CURSOS: Curso[] = [
   {
     id: "cse",
     nome: "Ciências Socioeconómicas",
-    descricao: "Matemática Aplicada às Ciências Sociais, Economia",
+    descricao: "Matemática Aplicada, Economia, História ou Geografia",
     cor: "#34C759",
     disciplinas: [
       // Trienais (peso 3)
@@ -130,7 +150,14 @@ export const CURSOS: Curso[] = [
         tipo: "trienal",
         anos: ["10", "11", "12"],
         exameNacional: true,
-        codigoExame: "635",
+        codigoExame: "835",
+      },
+      {
+        id: "cse-ef",
+        nome: "Educação Física",
+        tipo: "trienal",
+        anos: ["10", "11", "12"],
+        exameNacional: false,
       },
       // Bienais (peso 2)
       {
@@ -148,15 +175,15 @@ export const CURSOS: Curso[] = [
         exameNacional: false,
       },
       {
-        id: "cse-historia",
-        nome: "História A",
+        id: "cse-historia-geografia",
+        nome: "História A / História B / Geografia A",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
       },
       {
-        id: "cse-ef",
-        nome: "Educação Física",
+        id: "cse-ingles",
+        nome: "Inglês",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -184,7 +211,14 @@ export const CURSOS: Curso[] = [
         tipo: "trienal",
         anos: ["10", "11", "12"],
         exameNacional: true,
-        codigoExame: "640",
+        codigoExame: "623",
+      },
+      {
+        id: "lh-ef",
+        nome: "Educação Física",
+        tipo: "trienal",
+        anos: ["10", "11", "12"],
+        exameNacional: false,
       },
       // Bienais (peso 2)
       {
@@ -209,8 +243,8 @@ export const CURSOS: Curso[] = [
         exameNacional: false,
       },
       {
-        id: "lh-ef",
-        nome: "Educação Física",
+        id: "lh-ingles",
+        nome: "Inglês",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -238,7 +272,14 @@ export const CURSOS: Curso[] = [
         tipo: "trienal",
         anos: ["10", "11", "12"],
         exameNacional: true,
-        codigoExame: "701",
+        codigoExame: "706",
+      },
+      {
+        id: "av-ef",
+        nome: "Educação Física",
+        tipo: "trienal",
+        anos: ["10", "11", "12"],
+        exameNacional: false,
       },
       // Bienais (peso 2)
       {
@@ -263,8 +304,8 @@ export const CURSOS: Curso[] = [
         exameNacional: false,
       },
       {
-        id: "av-ef",
-        nome: "Educação Física",
+        id: "av-ingles",
+        nome: "Inglês",
         tipo: "bienal",
         anos: ["10", "11"],
         exameNacional: false,
@@ -310,4 +351,9 @@ export function normalizarNota(nota: number | string): number | null {
   // Se nota > 20, assume escala 0-200 e converte
   if (n > 20) return Math.round((n / 200) * 20 * 10) / 10;
   return Math.min(20, Math.max(0, n));
+}
+
+export function getNomeExame(codigo: string): string {
+  const exame = EXAMES_DISPONIVEIS.find((e) => e.codigo === codigo);
+  return exame?.nome ?? codigo;
 }

@@ -6,6 +6,7 @@
 import { motion } from "framer-motion";
 import { DISCIPLINAS_12_OPCOES, DisciplinaOpcional12, calcularCIFComTipo, normalizarNota } from "@/lib/cursos";
 import { useSimulador, DadosOpcional12 } from "@/contexts/SimuladorContext";
+import { toast } from "sonner";
 
 function NotaInput({
   value,
@@ -125,7 +126,30 @@ function OpcaoCard({
 export default function Passo3Opcoes() {
   const { state, dispatch } = useSimulador();
 
-  const podeProsseguir = state.opcional1.nome !== null || state.opcional2.nome !== null;
+  const temAmbas = state.opcional1.nome !== null && state.opcional2.nome !== null;
+  const temPelo1 = state.opcional1.nome !== null || state.opcional2.nome !== null;
+
+  const validarOpcoes = (): boolean => {
+    if (!state.opcional1.nome) {
+      toast.error("Seleciona a 1.ª disciplina anual do 12.º ano");
+      return false;
+    }
+    if (!state.opcional2.nome) {
+      toast.error("Seleciona a 2.ª disciplina anual do 12.º ano");
+      return false;
+    }
+    if (state.opcional1.nome === state.opcional2.nome) {
+      toast.error("Seleciona duas disciplinas diferentes");
+      return false;
+    }
+    return true;
+  };
+
+  const handleContinuar = () => {
+    if (validarOpcoes()) {
+      dispatch({ type: "SET_PASSO", passo: 4 });
+    }
+  };
 
   return (
     <motion.div
@@ -156,9 +180,8 @@ export default function Passo3Opcoes() {
           ← Voltar
         </button>
         <button
-          onClick={() => dispatch({ type: "SET_PASSO", passo: 4 })}
-          disabled={!podeProsseguir}
-          className="px-6 py-3 bg-[#0071E3] text-white text-[15px] font-semibold rounded-xl hover:bg-[#0077ED] active:bg-[#006CC7] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-sm hover:shadow-md"
+          onClick={handleContinuar}
+          className="px-6 py-3 bg-[#0071E3] text-white text-[15px] font-semibold rounded-xl hover:bg-[#0077ED] active:bg-[#006CC7] transition-all duration-150 shadow-sm hover:shadow-md"
         >
           Continuar para Exames →
         </button>

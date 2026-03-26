@@ -6,6 +6,7 @@
 import { motion } from "framer-motion";
 import { CURSOS, EXAMES_DISPONIVEIS, calcularCFD, normalizarNota, getNomeExame, getDisciplinaParaExame } from "@/lib/cursos";
 import { useSimulador } from "@/contexts/SimuladorContext";
+import { toast } from "sonner";
 import { X } from "lucide-react";
 
 function NotaExameInput({
@@ -92,6 +93,28 @@ export default function Passo4Exames() {
     if (notaNum === null) return null;
 
     return calcularCFD(cif, notaNum, tipoExame);
+  };
+
+  const validarExames = (): boolean => {
+    // Verificar se há exames com tipo selecionado mas sem nota
+    for (const exame of state.exames) {
+      if (exame.tipoExame && !exame.notaExame) {
+        toast.error(`Insere a nota para ${getNomeExame(exame.codigoExame)}`);
+        return false;
+      }
+      if (exame.notaExame && !exame.tipoExame) {
+        toast.error(`Seleciona o tipo de exame para ${getNomeExame(exame.codigoExame)}`);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleCalcular = () => {
+    if (validarExames()) {
+      const cursoObj = CURSOS.find((c) => c.id === state.cursoPorId);
+      if (cursoObj) dispatch({ type: "CALCULAR_RESULTADO", curso: cursoObj });
+    }
   };
 
   return (
@@ -250,10 +273,7 @@ export default function Passo4Exames() {
           ← Voltar
         </button>
         <button
-          onClick={() => {
-            const cursoObj = CURSOS.find((c) => c.id === state.cursoPorId);
-            if (cursoObj) dispatch({ type: "CALCULAR_RESULTADO", curso: cursoObj });
-          }}
+          onClick={handleCalcular}
           className="px-6 py-3 bg-[#0071E3] text-white text-[15px] font-semibold rounded-xl hover:bg-[#0077ED] active:bg-[#006CC7] transition-all duration-150 shadow-sm hover:shadow-md"
         >
           Calcular Média Final →

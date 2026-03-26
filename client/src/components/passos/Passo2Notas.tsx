@@ -6,6 +6,7 @@
 import { motion } from "framer-motion";
 import { CURSOS, calcularCIFComTipo, normalizarNota } from "@/lib/cursos";
 import { useSimulador } from "@/contexts/SimuladorContext";
+import { toast } from "sonner";
 
 function NotaInput({
   value,
@@ -86,6 +87,29 @@ export default function Passo2Notas() {
   });
 
   const podeProsseguir = disciplinasExibir.some((d) => getCIF(d.id) !== null);
+
+  // Validação de opções obrigatórias
+  const validarOpcoes = (): boolean => {
+    if (state.cursoPorId === "ct" && !state.opcaoBioGeomDesc) {
+      toast.error("Seleciona uma opção de Ciência (Biologia e Geologia ou Geometria Descritiva)");
+      return false;
+    }
+    if (state.cursoPorId === "cse" && !state.opcaoGeografiaHistoria) {
+      toast.error("Seleciona uma opção de História/Geografia (História B ou Geografia A)");
+      return false;
+    }
+    if (!podeProsseguir) {
+      toast.error("Preenche as notas de pelo menos uma disciplina");
+      return false;
+    }
+    return true;
+  };
+
+  const handleContinuar = () => {
+    if (validarOpcoes()) {
+      dispatch({ type: "SET_PASSO", passo: 3 });
+    }
+  };
 
   return (
     <motion.div
@@ -260,9 +284,8 @@ export default function Passo2Notas() {
       {/* Botão avançar */}
       <div className="mt-6 flex justify-end">
         <button
-          onClick={() => dispatch({ type: "SET_PASSO", passo: 3 })}
-          disabled={!podeProsseguir}
-          className="px-6 py-3 bg-[#0071E3] text-white text-[15px] font-semibold rounded-xl hover:bg-[#0077ED] active:bg-[#006CC7] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-sm hover:shadow-md"
+          onClick={handleContinuar}
+          className="px-6 py-3 bg-[#0071E3] text-white text-[15px] font-semibold rounded-xl hover:bg-[#0077ED] active:bg-[#006CC7] transition-all duration-150 shadow-sm hover:shadow-md"
         >
           Continuar para Opções do 12.º Ano →
         </button>

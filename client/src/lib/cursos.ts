@@ -417,12 +417,14 @@ export function calcularCIFComTipo(
     ];
     const validos = periodos.filter((p): p is number => p !== null && !isNaN(p));
     if (validos.length === 0) return null;
-    return validos.reduce((a, b) => a + b, 0) / validos.length;
+    const media = validos.reduce((a, b) => a + b, 0) / validos.length;
+    return Math.round(media);
   } else {
     const terceirosPeríodos = notasPorAno.map((n) => normalizarNota(n.p3));
     const validos = terceirosPeríodos.filter((p): p is number => p !== null && !isNaN(p));
     if (validos.length === 0) return null;
-    return validos.reduce((a, b) => a + b, 0) / validos.length;
+    const media = validos.reduce((a, b) => a + b, 0) / validos.length;
+    return Math.round(media);
   }
 }
 
@@ -434,8 +436,8 @@ export function calcularCIF(periodos: (number | null)[]): number | null {
 
 export function calcularCFD(cif: number, notaExame: number | null, tipoExame: "interno" | "ingresso" | null): number {
   if (tipoExame === "interno" && notaExame !== null) {
-    const cifArredondada = Math.round(cif);
-    return cifArredondada * 0.75 + notaExame * 0.25;
+    // CIF já vem arredondada de calcularCIFComTipo
+    return cif * 0.75 + notaExame * 0.25;
   }
   return cif;
 }
@@ -443,9 +445,12 @@ export function calcularCFD(cif: number, notaExame: number | null, tipoExame: "i
 export function calcularMediaFinal(disciplinas: { cfd: number; peso: number }[]): number | null {
   const validas = disciplinas.filter((d) => !isNaN(d.cfd));
   if (validas.length === 0) return null;
-  const somaPonderada = validas.reduce((acc, d) => acc + d.cfd * d.peso, 0);
+  // Usar CFD arredondados (já vêm arredondados de calcularCFD)
+  const somaPonderada = validas.reduce((acc, d) => acc + Math.round(d.cfd) * d.peso, 0);
   const somaPesos = validas.reduce((acc, d) => acc + d.peso, 0);
-  return Math.round((somaPonderada / somaPesos) * 10) / 10;
+  const mediaFinal = somaPonderada / somaPesos;
+  // Resultado final com 1 casa decimal
+  return Math.round(mediaFinal * 10) / 10;
 }
 
 export function normalizarNota(nota: number | string): number | null {

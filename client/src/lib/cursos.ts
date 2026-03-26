@@ -437,7 +437,8 @@ export function calcularCIF(periodos: (number | null)[]): number | null {
 export function calcularCFD(cif: number, notaExame: number | null, tipoExame: "interno" | "ingresso" | null): number {
   if (tipoExame === "interno" && notaExame !== null) {
     // CIF já vem arredondada de calcularCIFComTipo
-    return cif * 0.75 + notaExame * 0.25;
+    const cfd = cif * 0.75 + notaExame * 0.25;
+    return Math.round(cfd);
   }
   return cif;
 }
@@ -469,4 +470,101 @@ export function getDisciplinaParaExame(codigoExame: string, curso: Curso): Disci
   const discId = EXAME_PARA_DISCIPLINA[codigoExame];
   if (!discId) return null;
   return curso.disciplinas.find((d) => d.id === discId) ?? null;
+}
+
+
+// ─── OTIMIZADOR DE EXAMES ────────────────────────────────────────────────────
+
+export interface CombinaçãoExame {
+  codigoExame: string;
+  cfd: number;
+}
+
+export interface ResultadoOtimizacao {
+  mediaFinal: number;
+  examesUsados: CombinaçãoExame[];
+}
+
+/**
+ * Otimiza a combinação de até 3 exames inscritos para melhor média final
+ * @param disciplinas Array de disciplinas com CIF e peso
+ * @param examesDisponiveis Array de exames com código e nota
+ * @returns Melhor combinação de até 3 exames e a média resultante
+ */
+export function otimizarExames(
+  disciplinas: Array<{ id: string; cif: number | null; peso: number; codigoExame?: string }>,
+  examesDisponiveis: Array<{ codigoExame: string; notaExame: string; cif: number }>
+): ResultadoOtimizacao | null {
+  // Gerar todas as combinações de até 3 exames
+  const combinacoes: CombinaçãoExame[][] = [];
+  
+  // Combinação sem exames
+  combinacoes.push([]);
+  
+  // Combinações de 1, 2 e 3 exames
+  for (let r = 1; r <= Math.min(3, examesDisponiveis.length); r++) {
+    const combos = gerarCombinacoes(examesDisponiveis, r);
+    // Transformar exames em CombinaçãoExame
+    combinacoes.push(...combos.map((combo) => 
+      combo.map((exame) => ({
+        codigoExame: exame.codigoExame,
+        cfd: exame.cif,
+      }))
+    ));
+  }
+  
+  let melhorMedia = -Infinity;
+  let melhorCombinacao: CombinaçãoExame[] = [];
+  
+  for (const combo of combinacoes) {
+    const media = calcularMediaComExames(disciplinas, combo);
+    if (media !== null && media > melhorMedia) {
+      melhorMedia = media;
+      melhorCombinacao = combo;
+    }
+  }
+  
+  return melhorMedia > -Infinity ? { mediaFinal: melhorMedia, examesUsados: melhorCombinacao } : null;
+}
+
+function gerarCombinacoes(arr: Array<{ codigoExame: string; notaExame: string; cif: number }>, r: number): Array<Array<{ codigoExame: string; notaExame: string; cif: number }>> {
+  if (r === 0) return [[]];
+  if (arr.length === 0) return [];
+  
+  const [head, ...tail] = arr;
+  const combosSemHead = gerarCombinacoes(tail, r);
+  const combosComHead = gerarCombinacoes(tail, r - 1).map((combo) => [head, ...combo]);
+  
+  return [...combosSemHead, ...combosComHead];
+}
+
+function calcularMediaComExames(
+  disciplinas: Array<{ id: string; cif: number | null; peso: number; codigoExame?: string }>,
+  examesUsados: CombinaçãoExame[]
+): number | null {
+  const paraMedia: Array<{ cfd: number; peso: number }> = [];
+  
+  for (const disc of disciplinas) {
+    if (disc.cif === null) continue;
+    
+    let cfd = disc.cif;
+    
+    // Procurar se há exame para esta disciplina na combinação
+    if (disc.codigoExame) {
+      const exame = examesUsados.find((e) => e.codigoExame === disc.codigoExame);
+      if (exame) {
+        cfd = exame.cfd;
+      }
+    }
+    
+    paraMedia.push({ cfd: Math.round(cfd), peso: disc.peso });
+  }
+  
+  if (paraMedia.length === 0) return null;
+  
+  const somaPonderada = paraMedia.reduce((acc, d) => acc + d.cfd * d.peso, 0);
+  const somaPesos = paraMedia.reduce((acc, d) => acc + d.peso, 0);
+  const mediaFinal = somaPonderada / somaPesos;
+  
+  return Math.round(mediaFinal * 10) / 10;
 }

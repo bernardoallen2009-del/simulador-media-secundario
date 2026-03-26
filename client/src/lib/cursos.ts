@@ -332,7 +332,8 @@ export function calcularCIF(periodos: (number | null)[]): number | null {
 
 export function calcularCFD(cif: number, notaExame: number | null, tipoExame: "interno" | "ingresso" | null): number {
   if (tipoExame === "interno" && notaExame !== null) {
-    return cif * 0.75 + notaExame * 0.25;
+    const cifArredondada = Math.round(cif);
+    return cifArredondada * 0.75 + notaExame * 0.25;
   }
   return cif;
 }

@@ -486,7 +486,7 @@ export interface ResultadoOtimizacao {
 }
 
 /**
- * Otimiza a combinação de até 3 exames inscritos para melhor média final
+ * Otimiza a combinação de até 3 exames internos para melhor média final
  * @param disciplinas Array de disciplinas com CIF e peso
  * @param examesDisponiveis Array de exames com código e nota
  * @returns Melhor combinação de até 3 exames e a média resultante

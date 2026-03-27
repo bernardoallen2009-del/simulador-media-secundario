@@ -213,6 +213,49 @@ export default function Passo2Notas() {
         </motion.div>
       )}
 
+      {/* Toggle História da Cultura/Matemática B para Artes Visuais */}
+      {state.cursoPorId === "av" && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6 bg-white rounded-2xl border border-[#E5E5EA] shadow-sm p-4"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-[15px] font-semibold text-[#1D1D1F] mb-1">
+                Opção de História/Matemática (10º-11º)
+              </h3>
+              <p className="text-[13px] text-[#6E6E73]">
+                Escolhe qual disciplina vais fazer
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => dispatch({ type: "SET_OPCAO_ARTES_VISUAIS", opcao: "historia-cultura" })}
+                className={`px-4 py-2 text-[13px] font-medium rounded-lg border transition-all duration-150 whitespace-nowrap ${
+                  state.opcaoArtesVisuais === "historia-cultura"
+                    ? "bg-[#0071E3] text-white border-[#0071E3] shadow-sm"
+                    : "bg-white text-[#1D1D1F] border-[#D2D2D7] hover:border-[#0071E3]/40 hover:bg-[#0071E3]/5"
+                }`}
+              >
+                História da Cultura e das Artes
+              </button>
+              <button
+                onClick={() => dispatch({ type: "SET_OPCAO_ARTES_VISUAIS", opcao: "matematica-b" })}
+                className={`px-4 py-2 text-[13px] font-medium rounded-lg border transition-all duration-150 whitespace-nowrap ${
+                  state.opcaoArtesVisuais === "matematica-b"
+                    ? "bg-[#0071E3] text-white border-[#0071E3] shadow-sm"
+                    : "bg-white text-[#1D1D1F] border-[#D2D2D7] hover:border-[#0071E3]/40 hover:bg-[#0071E3]/5"
+                }`}
+              >
+                Matemática B
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <div className="space-y-4">
         {disciplinasExibir.map((disc, idx) => {
           const cif = getCIF(disc.id);

@@ -1,0 +1,6 @@
+- [x] Renomear "Aluno Inscrito" para "Aluno Interno" em toda a aplicação
+- [ ] Limitar a 3 exames internos máximo
+- [x] Atualizar otimizador para usar terminologia "interno"
+- [x] Adicionar toggle em Artes Visuais para História da Cultura/Matemática B
+- [ ] Validar responsividade dos botões em desktop e mobile
+- [ ] Testar limite de 3 exames internos

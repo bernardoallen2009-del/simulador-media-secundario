@@ -37,31 +37,39 @@ function NotaExameInput({
 function TipoExameSelector({
   value,
   onChange,
+  limiteInternosAtingido,
 }: {
   value: "interno" | "ingresso" | null;
   onChange: (v: "interno" | "ingresso" | null) => void;
+  limiteInternosAtingido: boolean;
 }) {
   const opcoes: { val: "interno" | "ingresso" | null; label: string }[] = [
     { val: null, label: "Nenhum" },
-    { val: "interno", label: "Aluno Inscrito" },
+    { val: "interno", label: "Aluno Interno" },
     { val: "ingresso", label: "Prova de Ingresso" },
   ];
 
   return (
     <div className="flex gap-1.5 flex-wrap">
-      {opcoes.map((op) => (
-        <button
-          key={String(op.val)}
-          onClick={() => onChange(op.val)}
-          className={`px-2.5 py-1 text-[12px] font-medium rounded-lg border transition-all duration-150
-            ${value === op.val
-              ? "bg-[#0071E3] text-white border-[#0071E3] shadow-sm"
-              : "bg-white text-[#1D1D1F] border-[#D2D2D7] hover:border-[#0071E3]/40 hover:bg-[#0071E3]/5"
-            }`}
-        >
-          {op.label}
-        </button>
-      ))}
+      {opcoes.map((op) => {
+        const isDisabled = op.val === "interno" && limiteInternosAtingido && value !== "interno";
+        return (
+          <button
+            key={String(op.val)}
+            onClick={() => !isDisabled && onChange(op.val)}
+            disabled={isDisabled}
+            className={`px-2.5 py-1 text-[12px] font-medium rounded-lg border transition-all duration-150
+              ${value === op.val
+                ? "bg-[#0071E3] text-white border-[#0071E3] shadow-sm"
+                : isDisabled
+                  ? "bg-[#F5F5F7] text-[#AEAEB2] border-[#E5E5EA] cursor-not-allowed"
+                  : "bg-white text-[#1D1D1F] border-[#D2D2D7] hover:border-[#0071E3]/40 hover:bg-[#0071E3]/5"
+              }`}
+          >
+            {op.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -74,6 +82,10 @@ export default function Passo4Exames() {
   // Exames já adicionados
   const examesAdicionados = new Set(state.exames.map((e) => e.codigoExame));
   const examesDisponiveis = EXAMES_DISPONIVEIS.filter((e) => !examesAdicionados.has(e.codigo));
+
+  // Contagem de exames internos (máximo 3)
+  const numExamesInternos = state.exames.filter((e) => e.tipoExame === "interno").length;
+  const limiteInternosAtingido = numExamesInternos >= 3;
 
   // Calcular CFD para cada exame
   const calcularCFDParaExame = (codigoExame: string, tipoExame: "interno" | "ingresso" | null, notaExame: string) => {
@@ -128,7 +140,7 @@ export default function Passo4Exames() {
           Exames Nacionais
         </h2>
         <p className="text-[#6E6E73] text-base">
-          Seleciona os exames que vais fazer. Para alunos inscritos: CFD = CIF (arredondada) × 75% + Nota Exame × 25%.
+          Seleciona os exames que vais fazer (máximo 3 como aluno interno). Para alunos internos: CFD = CIF (arredondada) × 75% + Nota Exame × 25%.
         </p>
       </div>
 
@@ -188,6 +200,7 @@ export default function Passo4Exames() {
                         onChange={(v) =>
                           dispatch({ type: "SET_TIPO_EXAME", exameId: exame.id, tipoExame: v })
                         }
+                        limiteInternosAtingido={limiteInternosAtingido}
                       />
                     </div>
 

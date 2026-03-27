@@ -71,6 +71,7 @@ export interface SimuladorState {
   resultado: ResultadoFinal | null;
   opcaoBioGeomDesc: "bio-geo" | "geometria-desc" | null;
   opcaoGeografiaHistoria: "geografia-a" | "historia-b" | null;
+  opcaoArtesVisuais: "historia-cultura" | "matematica-b" | null;
 }
 
 type Action =
@@ -85,6 +86,7 @@ type Action =
   | { type: "SET_NOTA_EXAME"; exameId: string; notaExame: string }
   | { type: "SET_OPCAO_BIO_GEOM"; opcao: "bio-geo" | "geometria-desc" }
   | { type: "SET_OPCAO_GEOGRAFIA_HISTORIA"; opcao: "geografia-a" | "historia-b" }
+  | { type: "SET_OPCAO_ARTES_VISUAIS"; opcao: "historia-cultura" | "matematica-b" }
   | { type: "CALCULAR_RESULTADO"; curso: Curso }
   | { type: "RESET" };
 
@@ -107,6 +109,7 @@ const initialState: SimuladorState = {
   resultado: null,
   opcaoBioGeomDesc: null,
   opcaoGeografiaHistoria: null,
+  opcaoArtesVisuais: null,
 };
 
 // ─── REDUCER ─────────────────────────────────────────────────────────────────
@@ -217,6 +220,13 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
       };
     }
 
+    case "SET_OPCAO_ARTES_VISUAIS": {
+      return {
+        ...state,
+        opcaoArtesVisuais: action.opcao,
+      };
+    }
+
     case "CALCULAR_RESULTADO": {
       const curso = action.curso;
       const resultados: ResultadoDisciplina[] = [];
@@ -230,6 +240,10 @@ function reducer(state: SimuladorState, action: Action): SimuladorState {
         // Filtrar Geografia/História para CSE
         if (curso.id === "cse" && (disc.id === "geografia-a" || disc.id === "historia-b")) {
           if (disc.id !== state.opcaoGeografiaHistoria) continue;
+        }
+        // Filtrar História da Cultura/Matemática B para Artes Visuais
+        if (curso.id === "av" && (disc.id === "historia-cultura" || disc.id === "matematica-b")) {
+          if (disc.id !== state.opcaoArtesVisuais) continue;
         }
 
         const dados = state.dadosDisciplinas[disc.id];

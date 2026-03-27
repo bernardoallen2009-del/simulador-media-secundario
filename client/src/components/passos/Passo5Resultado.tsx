@@ -171,7 +171,7 @@ export default function Passo5Resultado() {
                       <div className="font-medium text-[#1D1D1F]">{disc.nome}</div>
                       {disc.exameAplicado && (
                         <div className="text-[11px] text-[#AEAEB2] mt-1">
-                          {getNomeExame(disc.exameAplicado.codigoExame)} (Aluno Inscrito) = {disc.exameAplicado.notaExame}
+                          {getNomeExame(disc.exameAplicado.codigoExame)} (Aluno Interno) = {disc.exameAplicado.notaExame}
                         </div>
                       )}
                     </td>

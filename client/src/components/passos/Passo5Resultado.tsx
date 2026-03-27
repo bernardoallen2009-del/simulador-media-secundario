@@ -210,7 +210,10 @@ export default function Passo5Resultado() {
                 Melhor Combinação de Exames
               </h4>
               <p className="text-[13px] text-emerald-800 mb-2">
-                Usar estes {otimizacao.examesUsados.length} exame{otimizacao.examesUsados.length !== 1 ? 's' : ''} resulta na melhor média:
+                {examesComCFD.length > 3 
+                  ? `De entre os ${examesComCFD.length} exames internos, usar estes 3 resulta na melhor média:`
+                  : `Usar estes ${otimizacao.examesUsados.length} exame${otimizacao.examesUsados.length !== 1 ? 's' : ''} resulta na melhor média:`
+                }
               </p>
               <div className="space-y-1">
                 {otimizacao.examesUsados.map((exame) => (

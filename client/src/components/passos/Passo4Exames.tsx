@@ -118,6 +118,14 @@ export default function Passo4Exames() {
         return false;
       }
     }
+
+    // Verificar se há pelo menos 3 exames internos
+    const numExamesInternos = state.exames.filter((e) => e.tipoExame === 'interno').length;
+    if (numExamesInternos < 3) {
+      toast.error(`Seleciona pelo menos 3 exames como Aluno Interno (tens ${numExamesInternos})`);
+      return false;
+    }
+
     return true;
   };
 

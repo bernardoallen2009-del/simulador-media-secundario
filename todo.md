@@ -4,3 +4,6 @@
 - [x] Adicionar toggle em Artes Visuais para História da Cultura/Matemática B
 - [ ] Validar responsividade dos botões em desktop e mobile
 - [ ] Testar limite de 3 exames internos
+- [x] Validação obrigatória: exigir exatamente 3 exames internos
+- [x] Otimizador: testar todas as combinações de 3 internos se houver mais de 3
+- [x] Mostrar recomendação de melhor combinação no Passo 5

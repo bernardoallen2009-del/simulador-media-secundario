@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { CURSOS, getNomeExame, otimizarExames } from "@/lib/cursos";
 import { useSimulador } from "@/contexts/SimuladorContext";
-import { RotateCcw, Award, Info } from "lucide-react";
+import { RotateCcw, Award, Info, FileDown } from "lucide-react";
+import { gerarPDF } from "@/lib/pdf";
 
 // Animação do número da média
 function AnimatedNumber({ target }: { target: number }) {
@@ -246,11 +247,19 @@ export default function Passo5Resultado() {
         )}
       </motion.div>
 
-      {/* Botão recomeçar */}
-      <div className="flex justify-center">
+      {/* Botões de Ação */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button
+          onClick={() => gerarPDF(state)}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-[#0071E3] text-white text-[15px] font-semibold rounded-xl hover:bg-[#0071E3]/90 transition-all duration-150 shadow-md"
+        >
+          <FileDown className="w-4 h-4" />
+          Descarregar PDF Completo
+        </button>
+
         <button
           onClick={() => dispatch({ type: "RESET" })}
-          className="flex items-center gap-2 px-6 py-3 text-[#0071E3] text-[15px] font-semibold rounded-xl border border-[#0071E3]/30 hover:bg-[#0071E3]/5 transition-all duration-150"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-[#0071E3] text-[15px] font-semibold rounded-xl border border-[#0071E3]/30 hover:bg-[#0071E3]/5 transition-all duration-150"
         >
           <RotateCcw className="w-4 h-4" />
           Recomeçar Simulação

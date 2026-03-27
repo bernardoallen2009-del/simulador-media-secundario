@@ -119,10 +119,17 @@ export default function Passo4Exames() {
       }
     }
 
-    // Verificar se há pelo menos 3 exames internos
+    // Verificar se Português é selecionado como interno
+    const portuguesInterno = state.exames.find((e) => e.codigoExame === '639' && e.tipoExame === 'interno');
+    if (!portuguesInterno) {
+      toast.error('Português (639) é obrigatoriamente Aluno Interno');
+      return false;
+    }
+
+    // Verificar se há pelo menos 3 exames internos (Português + 2 outros)
     const numExamesInternos = state.exames.filter((e) => e.tipoExame === 'interno').length;
     if (numExamesInternos < 3) {
-      toast.error(`Seleciona pelo menos 3 exames como Aluno Interno (tens ${numExamesInternos})`);
+      toast.error(`Seleciona pelo menos 3 exames como Aluno Interno: Português + 2 outros (tens ${numExamesInternos})`);
       return false;
     }
 

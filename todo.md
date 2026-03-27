@@ -7,3 +7,7 @@
 - [x] Validação obrigatória: exigir exatamente 3 exames internos
 - [x] Otimizador: testar todas as combinações de 3 internos se houver mais de 3
 - [x] Mostrar recomendação de melhor combinação no Passo 5
+- [x] Remover limite de 3 internos, permitir seleção livre
+- [x] Validar que Português (639) é obrigatoriamente interno
+- [x] Otimizador: Português + 2 melhores outros internos
+- [x] Mensagem: "Além de Português, estes 2 exames dão melhor média"

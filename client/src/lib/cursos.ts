@@ -486,32 +486,33 @@ export interface ResultadoOtimizacao {
 }
 
 /**
- * Otimiza a combinação de até 3 exames internos para melhor média final
+ * Otimiza a combinação de Português + 2 melhores exames internos
  * @param disciplinas Array de disciplinas com CIF e peso
  * @param examesDisponiveis Array de exames com código e nota
- * @returns Melhor combinação de até 3 exames e a média resultante
+ * @returns Melhor combinação de Português + 2 outros e a média resultante
  */
 export function otimizarExames(
   disciplinas: Array<{ id: string; cif: number | null; peso: number; codigoExame?: string }>,
   examesDisponiveis: Array<{ codigoExame: string; notaExame: string; cif: number }>
 ): ResultadoOtimizacao | null {
-  // Gerar todas as combinações de até 3 exames
+  // Separar Português dos outros exames
+  const portugues = examesDisponiveis.find((e) => e.codigoExame === '639');
+  const outros = examesDisponiveis.filter((e) => e.codigoExame !== '639');
+  
+  // Se não há Português ou menos de 2 outros, retornar null
+  if (!portugues || outros.length < 2) return null;
+  
+  // Gerar combinações de 2 exames dos outros
   const combinacoes: CombinaçãoExame[][] = [];
   
-  // Combinação sem exames
-  combinacoes.push([]);
-  
-  // Combinações de 1, 2 e 3 exames
-  for (let r = 1; r <= Math.min(3, examesDisponiveis.length); r++) {
-    const combos = gerarCombinacoes(examesDisponiveis, r);
-    // Transformar exames em CombinaçãoExame
-    combinacoes.push(...combos.map((combo) => 
-      combo.map((exame) => ({
-        codigoExame: exame.codigoExame,
-        cfd: exame.cif,
-      }))
-    ));
-  }
+  const combos = gerarCombinacoes(outros, 2);
+  combinacoes.push(...combos.map((combo) => [
+    { codigoExame: portugues.codigoExame, cfd: portugues.cif },
+    ...combo.map((exame) => ({
+      codigoExame: exame.codigoExame,
+      cfd: exame.cif,
+    }))
+  ]));
   
   let melhorMedia = -Infinity;
   let melhorCombinacao: CombinaçãoExame[] = [];
